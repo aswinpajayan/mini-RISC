@@ -1,3 +1,8 @@
 *.o
 *.vcd
+*wlf
+transcript
+*.mti
+*.mpf
+*.cf
 tags
