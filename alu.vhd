@@ -4,11 +4,11 @@ use IEEE.numeric_std.all;
 --use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity alu is 
-	generic(width: Natural :=16);
-	port(operand_1 : in std_logic_vector(width-1 downto 0);
-	     operand_2 : in std_logic_vector(width-1 downto 0);
+	generic(WIDTH: Natural :=16);
+	port(operand_1 : in std_logic_vector(WIDTH-1 downto 0);
+	     operand_2 : in std_logic_vector(WIDTH-1 downto 0);
 	 operation_sel : in STD_LOGIC_VECTOR(1 downto 0);
-    	     result :out std_logic_vector (width -1 downto 0);
+    	     result :out std_logic_vector (WIDTH -1 downto 0);
      		C,Z :out STD_LOGIC);
 end entity alu;
 architecture rtl of alu is
