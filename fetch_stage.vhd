@@ -21,7 +21,7 @@ architecture rtl of fetch_stage is
 
 	component instn_memory is generic(SIZE : POSITIVE :=64;
 			WIDTH: POSITIVE :=16);
-			port(instn_address : in STD_LOGIC_VECTOR(integer(log2(real(SIZE))) -1 downto 0);
+			port(instn_address : in STD_LOGIC_VECTOR(WIDTH -1 downto 0);
 			instn : out STD_LOGIC_VECTOR (WIDTH-1 downto 0));
 
 	end component instn_memory;
@@ -44,7 +44,7 @@ begin
      			          port map(instn_address => instn_address,
 				  instn => INSTN);
 
-     PC_INX <= std_logic_vector(unsigned(instn_address) + 1);
+     pc_inc <= std_logic_vector(unsigned(instn_address) + 1);
 	
      mux_out <= pc_inc when not(CTL_BRANCH = '1') else  
 	       JUMP_ADD_JL when CTL_PC_IN = "00" else

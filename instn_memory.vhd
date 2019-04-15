@@ -6,7 +6,7 @@ use work.CONSTANTS.all;
 -- I_MEM_SIZE is in number of instructions
 entity instn_memory is generic(SIZE : POSITIVE :=64;
 				WIDTH: POSITIVE :=16);
-			port(instn_address : in STD_LOGIC_VECTOR(integer(log2(real(SIZE))) -1 downto 0);
+			port(instn_address : in STD_LOGIC_VECTOR(WIDTH -1 downto 0);
 				     instn : out STD_LOGIC_VECTOR (WIDTH-1 downto 0));
 end entity instn_memory;
 --Notice that size of instructon memory in bytes is I_MEM_SIZE * WIDTH /8 
