@@ -26,9 +26,11 @@ begin
 	 data_out1 <= rblock(to_integer(unsigned(read_address1)));
 	 data_out2 <= rblock(to_integer(unsigned(read_address2)));
 	 write_process: process(clk) begin
-		 if (rising_edge(clk) and write_en = '1') then
-			rblock(to_integer(unsigned('0' & write_address)))<= data_in;
-			rblock(SIZE -1 ) <= PC_in; --PC_in wrote in last location
+		 if rising_edge(clk) then
+			 if(write_en = '1') then
+				rblock(to_integer(unsigned('0' & write_address)))<= data_in;
+			end if;
+			rblock(SIZE-1) <= PC_in;
 		 end if;
 	end process write_process;
 end architecture rtl;
