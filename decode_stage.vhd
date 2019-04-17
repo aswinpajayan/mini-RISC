@@ -21,24 +21,24 @@ architecture rtl of decode_stage is
 	alias RS2 : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(5 downto 3);
 	alias RD  : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(8 downto 6);
 	alias ADDRESS : STD_LOGIC_VECTOR(15 downto 0) is CTL_WORD(24 downto 9);
---	alias IMM_VALUE : STD_LOGIC_VECTOR(15 downto 0) is CTL_WORD(40 downto 25);
-	alias CTL_MODIFY_FLAGS : STD_LOGIC_VECTOR(1 downto 0) is CTL_WORD(42 downto 41); -- modify the flags or not "CZ"
-	alias CTL_BEQ : STD_LOGIC is CTL_WORD(43);
-	alias CTL_JLR : STD_LOGIC is CTL_WORD(44);
-	alias CTL_JAL : STD_LOGIC is CTL_WORD(45);
+--	alias IMMEDIATE_16 : STD_LOGIC_VECTOR(15 downto 0) is CTL_WORD(40 downto 25);
+	alias CTL_MODIFY_FLAGS : STD_LOGIC_VECTOR(1 downto 0) is CTL_WORD(26 downto 25); -- modify the flags or not "CZ"
+	alias CTL_BEQ : STD_LOGIC is CTL_WORD(27);
+	alias CTL_JLR : STD_LOGIC is CTL_WORD(28);
+	alias CTL_JAL : STD_LOGIC is CTL_WORD(29);
 	
-	alias CTL_OPERATION_SEL : STD_LOGIC is CTL_WORD(46);
-	alias CTL_WRITE_REG : STD_LOGIC is CTL_WORD(47);
-	alias CTL_MEMW : STD_LOGIC is CTL_WORD(48);
-	alias CTL_MEMR : STD_LOGIC is CTL_WORD(49);
-	alias CTL_SEL_IMMEDIATE : STD_LOGIC is CTL_WORD(50);
+	alias CTL_OPERATION_SEL : STD_LOGIC is CTL_WORD(30);
+	alias CTL_WRITE_REG : STD_LOGIC is CTL_WORD(31);
+	alias CTL_MEMW : STD_LOGIC is CTL_WORD(32);
+	alias CTL_MEMR : STD_LOGIC is CTL_WORD(33);
+	alias CTL_SEL_IMMEDIATE : STD_LOGIC is CTL_WORD(34);
 	
-	alias CTL_ADI : STD_LOGIC is CTL_WORD(51);
-	alias CTL_LH : STD_LOGIC is CTL_WORD(52);
-	alias CTL_SIGNALS : STD_LOGIC_VECTOR(11 downto 0) is CTL_WORD(52 downto 41);
+	alias CTL_ADI : STD_LOGIC is CTL_WORD(35);
+	alias CTL_LH : STD_LOGIC is CTL_WORD(36);
+	alias CTL_SIGNALS : STD_LOGIC_VECTOR(11 downto 0) is CTL_WORD(36 downto 25);
 
 
-	alias IMMEDIATE_16 : STD_LOGIC_VECTOR(GLOBAL_WIDTH-1 downto 0) is CTL_WORD(68 downto 53);
+	alias IMMEDIATE_16 : STD_LOGIC_VECTOR(GLOBAL_WIDTH-1 downto 0) is CTL_WORD(52 downto 37);
 
 
 	alias OPCODE : STD_LOGIC_VECTOR (3 downto 0 ) is INSTRUCTION(15 downto 12);
@@ -123,7 +123,7 @@ begin
 	-- branch target addresses are not calculated in ALU 
 	
 	--storing either Sign extended six bits (immediate) or shifted 9 bits)
-	IMMEDIATE_16 <= (INSTRUCTION(8 downto 0) & "000000000") when OPCODE = LHI else	
+	IMMEDIATE_16 <= (INSTRUCTION(8 downto 0) & "0000000") when OPCODE = LHI else	
 			immediate;
 	
 
