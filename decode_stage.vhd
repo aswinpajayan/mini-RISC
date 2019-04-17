@@ -9,14 +9,19 @@ use work.all;
 --	CONTROL_WORD  = a standard logic vector which has all the control signals
 --	JUMP_ADD -- jump address
 --      alias alias_name : alias_type is object_name; 
-entity decode_stage is port(INSTRUCTION,PC_INX : in 	STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
-			CTL_WORD : out STD_LOGIC_VECTOR (CONTROL_WORD_WIDTH - 1 downto 0));
+entity decode_stage is port(PIPE_REG_FETCH : in 	STD_LOGIC_VECTOR(PIPE_REG_FETCH_SIZE -1 downto 0);
+			PIPE_REG_DECODE : out STD_LOGIC_VECTOR (PIPE_REG_DECODE_SIZE - 1 downto 0));
 end entity decode_stage;
 
 architecture rtl of decode_stage is	
 
 
 -------------------- ALIAS declarations start------------------------------
+	alias CTL_WORD :STD_LOGIC_VECTOR(CONTROL_WORD_WIDTH -1 downto 0) is PIPE_REG_DECODE(PIPE_REG_DECODE_SIZE-1 downto PIPE_REG_FETCH_SIZE);
+	alias INSTRUCTION :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is PIPE_REG_FETCH (GLOBAL_WIDTH -1 downto 0);
+	alias PC_INX :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is PIPE_REG_FETCH (PIPE_REG_FETCH_SIZE -1 downto GLOBAL_WIDTH);
+
+
 	alias RS1 : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(2 downto 0);
 	alias RS2 : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(5 downto 3);
 	alias RD  : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(8 downto 6);
@@ -127,7 +132,8 @@ begin
 			immediate;
 	
 
-
+	--passing on input pipeline(32) bits to output
+	PIPE_REG_DECODE(PIPE_REG_FETCH_SIZE -1 downto 0) <= PIPE_REG_FETCH;
 end architecture rtl;
 
 
