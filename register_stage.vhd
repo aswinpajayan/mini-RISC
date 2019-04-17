@@ -56,8 +56,8 @@ architecture rtl of register_stage is
 	alias OPERAND_1 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is PIPE_REG_OP_FETCH(84 downto 69); 
 	alias OPERAND_2 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is PIPE_REG_OP_FETCH(100 downto 85); 
 ----------------signal declarations -------------------------------------------------
-	signal register_out2 :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0); --
-                                                                          --
+	signal register_out1,register_out2 :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0); --
+        signal SIG_FOUND_EQUAL : STD_LOGIC;                                                                --
 ----------------component declarations-----------------------------------------------
 
 	component register_file is generic(SIZE : POSITIVE :=8;
@@ -78,14 +78,25 @@ begin
 		write_address => WB_RD,
 		clk => clk,
 		write_en => WB_CTL_WRITE_REG,
-		data_out1 => OPERAND_1,
+		data_out1 => register_out1,
 		data_out2 => register_out2,
 		data_in => WB_RESULT,
 		PC_in => WB_PC_INX);
-	
+	OPERAND_1 <= register_out1;
 	OPERAND_2 <= IMMEDIATE_16 when CTL_SEL_IMMEDIATE = '1' else 
 		     register_out2;
 
-	PIPE_REG_OP_FETCH(68 downto 0) <= PIPE_REG_DECODE(68 downto 0);
+	---PIPE_REG_OP_FETCH(68 downto 0) <= PIPE_REG_DECODE(68 downto 0);
+	-- we are changing the value of ADDRESS field to hold the JAL 
+	PIPE_REG_OP_FETCH(56 downto 41) <= register_out2 when CTL_JLR = '1' else
+				          PIPE_REG_DECODE(56 downto 41);
+	
+	--rest of the pipeline register bits are simply rippled 
+	PIPE_REG_OP_FETCH(68 downto 57) <= PIPE_REG_DECODE(68 downto 57);
+	PIPE_REG_OP_FETCH(40 downto 0) <= PIPE_REG_DECODE(40 downto 0);
+
+	--checking wether to branch on BEQ
+	SIG_FOUND_EQUAL <= '1' when (unsigned(register_out1 xor register_out2) = 0) else '0';
+
 
 end architecture rtl;
