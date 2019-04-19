@@ -11,7 +11,7 @@ use work.all;
 entity execute_stage is port(PIPE_REG_RF : in 	STD_LOGIC_VECTOR(PIPE_REG_RF_SIZE -1 downto (GLOBAL_WIDTH*2));
 			EX_FLAGS : in STD_LOGIC_VECTOR(1 downto 0);  --previous intruction op / Forward pipeline
 			RF_CONDITION_CODE : in STD_LOGIC_VECTOR(1 downto 0);  --should be mapped to instn(1 downt 0)
-			PIPE_REG_EX : out STD_LOGIC_VECTOR (PIPE_REG_EX_SIZE - 1 downto 0));
+			PIPE_REG_EX : out STD_LOGIC_VECTOR (PIPE_REG_EX_SIZE - 1 downto (GLOBAL_WIDTH*2)));
 
 end entity execute_stage;
 

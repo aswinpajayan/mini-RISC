@@ -5,7 +5,7 @@ use IEEE.math_real.log2;
 -- DATA_MEM_SIZE is in number of words 
 entity data_memory is generic(  SIZE : POSITIVE :=64;
 				WIDTH: POSITIVE :=16);
-			port(address : in STD_LOGIC_VECTOR(integer(log2(real(SIZE))) -1 downto 0);
+			port(address : in STD_LOGIC_VECTOR(WIDTH -1 downto 0);
 		           clk,write_en : in STD_LOGIC;
 			    data_out : out STD_LOGIC_VECTOR (WIDTH-1 downto 0);
 			      data_in: in STD_LOGIC_VECTOR(WIDTH-1 downto 0));

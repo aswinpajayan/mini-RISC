@@ -13,4 +13,6 @@ package CONSTANTS is
 	constant PIPE_REG_EX_SIZE :POSITIVE := 81 ;
 	constant CONTROL_SIGNALS_WIDTH : POSITIVE := 12;
 	constant REG_ADD_WIDTH : POSITIVE := 3;
+	constant PIPE_REG_MEM_SIZE : POSITIVE := 63;
+	constant D_MEM_SIZE :POSITIVE := 64;
 end package CONSTANTS;

@@ -30,7 +30,7 @@ begin
 			 if(write_en = '1') then
 				rblock(to_integer(unsigned('0' & write_address)))<= data_in;
 			end if;
-			rblock(SIZE-1) <= PC_in;
+		    rblock(SIZE-1) <= PC_in;
 		 end if;
 	end process write_process;
 end architecture rtl;
