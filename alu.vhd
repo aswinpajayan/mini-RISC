@@ -4,7 +4,7 @@ use IEEE.numeric_std.all;
 --use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity alu is 
-	generic(WIDTH: Natural :=16);
+	generic(WIDTH: POSITIVE :=16);
 	port(operand_1 : in STD_LOGIC_VECTOR(WIDTH-1 downto 0);
 	     operand_2 : in STD_LOGIC_VECTOR(WIDTH-1 downto 0);
 	     operation_sel : in STD_LOGIC; -- 0 for addition 1 for nand

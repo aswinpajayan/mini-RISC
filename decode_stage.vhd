@@ -33,8 +33,8 @@ architecture rtl of decode_stage is
 	alias CTL_MEMR : STD_LOGIC is CTL_WORD(8);
 	alias CTL_SEL_IMMEDIATE : STD_LOGIC is CTL_WORD(9);
 	
-	alias CTL_ADI : STD_LOGIC is CTL_WORD(10);
-	alias CTL_LH : STD_LOGIC is CTL_WORD(11);
+	alias CTL_VALIDATE_FLAG : STD_LOGIC is CTL_WORD(10);
+	alias CTL_LHI : STD_LOGIC is CTL_WORD(11);
 	alias CTL_SIGNALS : STD_LOGIC_VECTOR(11 downto 0) is CTL_WORD(11 downto 0);
 
         
@@ -75,7 +75,7 @@ architecture rtl of decode_stage is
 ------------------------signal declarations ------------------------------------------
 	
 
-	signal mux_out,instn_address,pc_inc,immediate: STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
+	signal mux_out,instn_address,pc_inc,immediate_out_6,immediate_out_9: STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 
 -------------------------components---------------------------------------------------
 	component sign_extender is generic(IN_WIDTH :POSITIVE:=6;
@@ -87,7 +87,11 @@ architecture rtl of decode_stage is
 begin
 	SE6 : sign_extender  generic map(IMM_IN_6,GLOBAL_WIDTH)
 				port map( immediate_in => INSTRUCTION (5 downto 0),
-				sign_extended_out => immediate);
+				sign_extended_out => immediate_out_6);
+	
+	SE9 : sign_extender  generic map(IMM_IN_9,GLOBAL_WIDTH)
+				port map( immediate_in => INSTRUCTION (8 downto 0),
+				sign_extended_out => immediate_out_9);
 
 	RS1 <= INSTRUCTION(8 downto 6) when OPCODE = LW else  --LW
 	       INSTRUCTION(8 downto 6) when OPCODE = SW else  --SW
@@ -103,7 +107,8 @@ begin
 	       INSTRUCTION(11 downto 9) when OPCODE = JLR else  --JLR
 	       INSTRUCTION(5 downto 3);  --for all other instructions
 		
-	ADDRESS <= std_logic_vector(unsigned(PC_INX) + unsigned(immediate));
+	ADDRESS <= std_logic_vector(unsigned(PC_INX) + unsigned(immediate_out_9)) when OPCODE = JAL else
+		  std_logic_vector(unsigned(PC_INX) + unsigned(immediate_out_6));
 	--zero flag control 
 	CTL_MODIFY_FLAGS(0) <= '1' when( (OPCODE = ALL_ADD) or (OPCODE = ADI) or (OPCODE = ALL_NAND )) else '0';
 	--carry flag control 
@@ -127,14 +132,14 @@ begin
 	CTL_SEL_IMMEDIATE <= '1' when( (OPCODE = ADI) or (OPCODE = LW) or (OPCODE = SW)
 			     		or (OPCODE = LM) or (OPCODE = SM))else '0';
 
-	CTL_ADI <= '1' when (OPCODE = ADI) else '0';
-	CTL_LH  <= '1' when (OPCODE = LHI) else '0' ;
+	CTL_VALIDATE_FLAG <= '1' when OPCODE = ADC or OPCODE = NDC or OPCODE = ADZ or OPCODE = NDZ  else '0';
+	CTL_LHI  <= '1' when (OPCODE = LHI) else '0' ;
       
 	-- branch target addresses are not calculated in ALU 
 	
 	--storing either Sign extended six bits (immediate) or shifted 9 bits)
 	IMMEDIATE_16 <= (INSTRUCTION(8 downto 0) & "0000000") when OPCODE = LHI else	
-			immediate;
+			immediate_out_6 ;
 	
 
 	--passing on input pipeline(32) bits to output

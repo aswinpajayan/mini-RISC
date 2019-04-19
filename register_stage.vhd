@@ -9,13 +9,13 @@ use work.all;
 --	CONTROL_WORD  = a standard logic vector which has all the control signals
 --	JUMP_ADD -- jump address
 --      alias alias_name : alias_type is object_name; 
-entity register_stage is port(PIPE_REG_DECODE : in 	STD_LOGIC_VECTOR(PIPE_REG_DECODE_SIZE -1 downto PIPE_REG_FETCH_SIZE);
+entity register_stage is port(PIPE_REG_DECODE : in 	STD_LOGIC_VECTOR(PIPE_REG_DECODE_SIZE -1 downto (GLOBAL_WIDTH*2));
 			WB_RD :in STD_LOGIC_VECTOR (2 downto 0);
 			WB_RESULT : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 			WB_CTL_WRITE_REG : in STD_LOGIC;
 			WB_PC_INX : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 			clk : in STD_LOGIC;
-			PIPE_REG_OP_FETCH : out STD_LOGIC_VECTOR (PIPE_REG_OP_FETCH_SIZE - 1 downto 0);
+			PIPE_REG_RF : out STD_LOGIC_VECTOR (PIPE_REG_RF_SIZE - 1 downto (GLOBAL_WIDTH*2));
 			RF_JUMP_ADD : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 			SIG_BEG_EQ : out STD_LOGIC);
 
@@ -40,8 +40,8 @@ architecture rtl of register_stage is
 	alias CTL_MEMW : STD_LOGIC is CTL_WORD(7);
 	alias CTL_MEMR : STD_LOGIC is CTL_WORD(8);
 	alias CTL_SEL_IMMEDIATE : STD_LOGIC is CTL_WORD(9);
-	alias CTL_ADI : STD_LOGIC is CTL_WORD(10);
-	alias CTL_LH : STD_LOGIC is CTL_WORD(11);
+	alias CTL_VALIDATE_FLAGS : STD_LOGIC is CTL_WORD(10);
+	alias CTL_LHI : STD_LOGIC is CTL_WORD(11);
 	alias CTL_SIGNALS : STD_LOGIC_VECTOR(11 downto 0) is CTL_WORD(11 downto 0);
 
 	alias RD  : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(14 downto 12);
@@ -56,13 +56,24 @@ architecture rtl of register_stage is
 
 
 ----------------alias declarations for next stage ---------------------------------
-	alias OPERAND_1 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is PIPE_REG_OP_FETCH(PIPE_REG_OP_FETCH_SIZE - GLOBAL_WIDTH -1   downto PIPE_REG_OP_FETCH_SIZE - (GLOBAL_WIDTH*2));   
-	-- adding operand1 to the pipelie register this can be either imm16 or register
 
-	alias OPERAND_2 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is PIPE_REG_OP_FETCH(PIPE_REG_OP_FETCH_SIZE -1 downto PIPE_REG_OP_FETCH_SIZE - GLOBAL_WIDTH); 
+	
+
+	alias OPERAND_2 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is 
+		PIPE_REG_RF(PIPE_REG_RF_SIZE -1
+		downto PIPE_REG_RF_SIZE - GLOBAL_WIDTH); 
 	--adding operand2 to the pipeline register
 
+	alias OPERAND_1 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is 
+		PIPE_REG_RF(PIPE_REG_RF_SIZE - GLOBAL_WIDTH -1   
+		downto PIPE_REG_RF_SIZE - (GLOBAL_WIDTH*2));   
 
+
+	-- adding operand1 to the pipelie register this can be either imm16 or register
+	alias IMMEDIATE_16_OUT : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is 
+		PIPE_REG_RF(PIPE_REG_RF_SIZE - (GLOBAL_WIDTH *2) - 1
+		downto PIPE_REG_RF_SIZE - (GLOBAL_WIDTH * 3));
+			
 ----------------signal declarations -------------------------------------------------
 	signal register_out1,register_out2 :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0); --
 ----------------component declarations-----------------------------------------------
@@ -90,14 +101,16 @@ begin
 		data_in => WB_RESULT,
 		PC_in => WB_PC_INX);
 
-	PIPE_REG_OP_FETCH(43 downto 32) <= CTL_SIGNALS; 
-	PIPE_REG_OP_FETCH(46 downto 44) <= RD;
+	PIPE_REG_RF((GLOBAL_WIDTH *2) + 11 downto GLOBAL_WIDTH *2) <= CTL_SIGNALS; 
+	PIPE_REG_RF((GLOBAL_WIDTH *2) +12 + 2 downto (GLOBAL_WIDTH *2)+ 12) <= RD;
 	
 	--adding operand 1 and operand2 to pipeline(47 downto 78)
 	OPERAND_1 <= register_out1;
-	OPERAND_2 <= IMMEDIATE_16 when CTL_SEL_IMMEDIATE = '1' else 
-		     register_out2;
+	OPERAND_2 <= register_out2;
 	
+	--adding IMMEDIATE_16 to pipeline later used for address calculation
+	IMMEDIATE_16_OUT <= IMMEDIATE_16 ;
+
 	--checking wether to branch on BEQ
 	--SIG_BEG_EQ <= '1' when (unsigned(register_out1 xor register_out2) = 0) else '0';
 	SIG_BEG_EQ <= '1' when (unsigned(register_out1) = unsigned(register_out2)) else '0';
