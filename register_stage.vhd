@@ -9,55 +9,62 @@ use work.all;
 --	CONTROL_WORD  = a standard logic vector which has all the control signals
 --	JUMP_ADD -- jump address
 --      alias alias_name : alias_type is object_name; 
-entity register_stage is port(PIPE_REG_DECODE : in 	STD_LOGIC_VECTOR(PIPE_REG_DECODE_SIZE -1 downto 0);
+entity register_stage is port(PIPE_REG_DECODE : in 	STD_LOGIC_VECTOR(PIPE_REG_DECODE_SIZE -1 downto PIPE_REG_FETCH_SIZE);
 			WB_RD :in STD_LOGIC_VECTOR (2 downto 0);
 			WB_RESULT : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 			WB_CTL_WRITE_REG : in STD_LOGIC;
 			WB_PC_INX : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 			clk : in STD_LOGIC;
-			PIPE_REG_OP_FETCH : out STD_LOGIC_VECTOR (PIPE_REG_OP_FETCH_SIZE - 1 downto 0));
+			PIPE_REG_OP_FETCH : out STD_LOGIC_VECTOR (PIPE_REG_OP_FETCH_SIZE - 1 downto 0);
+			RF_JUMP_ADD : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
+			SIG_BEG_EQ : out STD_LOGIC);
+
 end entity register_stage;
 
 architecture rtl of register_stage is	
 
 
+
+
 -------------------- ALIAS declarations start------------------------------
 	-------CTL_WORD has previous CONTROL_WORD 
+
 	alias CTL_WORD :STD_LOGIC_VECTOR(CONTROL_WORD_WIDTH -1 downto 0) is PIPE_REG_DECODE(PIPE_REG_DECODE_SIZE-1 downto PIPE_REG_FETCH_SIZE);
-	alias INSTRUCTION :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is PIPE_REG_DECODE (GLOBAL_WIDTH -1 downto 0);
-	alias PC_INX :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is PIPE_REG_DECODE (PIPE_REG_FETCH_SIZE -1 downto GLOBAL_WIDTH);
 
+	alias CTL_MODIFY_FLAGS : STD_LOGIC_VECTOR(1 downto 0) is CTL_WORD(1  downto 0); -- modify the flags or not "CZ"
+	alias CTL_BEQ : STD_LOGIC is CTL_WORD(2);
+	alias CTL_JLR : STD_LOGIC is CTL_WORD(3);
+	alias CTL_JAL : STD_LOGIC is CTL_WORD(4);
+	alias CTL_OPERATION_SEL : STD_LOGIC is CTL_WORD(5);
+	alias CTL_WRITE_REG : STD_LOGIC is CTL_WORD(6);
+	alias CTL_MEMW : STD_LOGIC is CTL_WORD(7);
+	alias CTL_MEMR : STD_LOGIC is CTL_WORD(8);
+	alias CTL_SEL_IMMEDIATE : STD_LOGIC is CTL_WORD(9);
+	alias CTL_ADI : STD_LOGIC is CTL_WORD(10);
+	alias CTL_LH : STD_LOGIC is CTL_WORD(11);
+	alias CTL_SIGNALS : STD_LOGIC_VECTOR(11 downto 0) is CTL_WORD(11 downto 0);
 
-	alias RS1 : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(2 downto 0);
-	alias RS2 : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(5 downto 3);
-	alias RD  : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(8 downto 6);
-	alias ADDRESS : STD_LOGIC_VECTOR(15 downto 0) is CTL_WORD(24 downto 9);
---	alias IMMEDIATE_16 : STD_LOGIC_VECTOR(15 downto 0) is CTL_WORD(40 downto 25);
-	alias CTL_MODIFY_FLAGS : STD_LOGIC_VECTOR(1 downto 0) is CTL_WORD(26 downto 25); -- modify the flags or not "CZ"
-	alias CTL_BEQ : STD_LOGIC is CTL_WORD(27);
-	alias CTL_JLR : STD_LOGIC is CTL_WORD(28);
-	alias CTL_JAL : STD_LOGIC is CTL_WORD(29);
+	alias RD  : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(14 downto 12);
 	
-	alias CTL_OPERATION_SEL : STD_LOGIC is CTL_WORD(30);
-	alias CTL_WRITE_REG : STD_LOGIC is CTL_WORD(31);
-	alias CTL_MEMW : STD_LOGIC is CTL_WORD(32);
-	alias CTL_MEMR : STD_LOGIC is CTL_WORD(33);
-	alias CTL_SEL_IMMEDIATE : STD_LOGIC is CTL_WORD(34);
 	
-	alias CTL_ADI : STD_LOGIC is CTL_WORD(35);
-	alias CTL_LH : STD_LOGIC is CTL_WORD(36);
-	alias CTL_SIGNALS : STD_LOGIC_VECTOR(11 downto 0) is CTL_WORD(36 downto 25);
+	alias RS1 : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(17 downto 15);
+	alias RS2 : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(20 downto 18);
+	
+	alias IMMEDIATE_16 : STD_LOGIC_VECTOR(GLOBAL_WIDTH-1 downto 0) is CTL_WORD(36 downto 21);
 
-
-	alias IMMEDIATE_16 : STD_LOGIC_VECTOR(GLOBAL_WIDTH-1 downto 0) is CTL_WORD(52 downto 37);
+	alias ADDRESS : STD_LOGIC_VECTOR(15 downto 0) is CTL_WORD(52 downto 37);
 
 
 ----------------alias declarations for next stage ---------------------------------
-	alias OPERAND_1 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is PIPE_REG_OP_FETCH(84 downto 69); 
-	alias OPERAND_2 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is PIPE_REG_OP_FETCH(100 downto 85); 
+	alias OPERAND_1 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is PIPE_REG_OP_FETCH(PIPE_REG_OP_FETCH_SIZE - GLOBAL_WIDTH -1   downto PIPE_REG_OP_FETCH_SIZE - (GLOBAL_WIDTH*2));   
+	-- adding operand1 to the pipelie register this can be either imm16 or register
+
+	alias OPERAND_2 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is PIPE_REG_OP_FETCH(PIPE_REG_OP_FETCH_SIZE -1 downto PIPE_REG_OP_FETCH_SIZE - GLOBAL_WIDTH); 
+	--adding operand2 to the pipeline register
+
+
 ----------------signal declarations -------------------------------------------------
 	signal register_out1,register_out2 :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0); --
-        signal SIG_FOUND_EQUAL : STD_LOGIC;                                                                --
 ----------------component declarations-----------------------------------------------
 
 	component register_file is generic(SIZE : POSITIVE :=8;
@@ -82,21 +89,22 @@ begin
 		data_out2 => register_out2,
 		data_in => WB_RESULT,
 		PC_in => WB_PC_INX);
+
+	PIPE_REG_OP_FETCH(43 downto 32) <= CTL_SIGNALS; 
+	PIPE_REG_OP_FETCH(46 downto 44) <= RD;
+	
+	--adding operand 1 and operand2 to pipeline(47 downto 78)
 	OPERAND_1 <= register_out1;
 	OPERAND_2 <= IMMEDIATE_16 when CTL_SEL_IMMEDIATE = '1' else 
 		     register_out2;
-
-	---PIPE_REG_OP_FETCH(68 downto 0) <= PIPE_REG_DECODE(68 downto 0);
-	-- we are changing the value of ADDRESS field to hold the JAL 
-	PIPE_REG_OP_FETCH(56 downto 41) <= register_out2 when CTL_JLR = '1' else
-				          PIPE_REG_DECODE(56 downto 41);
 	
-	--rest of the pipeline register bits are simply rippled 
-	PIPE_REG_OP_FETCH(68 downto 57) <= PIPE_REG_DECODE(68 downto 57);
-	PIPE_REG_OP_FETCH(40 downto 0) <= PIPE_REG_DECODE(40 downto 0);
-
 	--checking wether to branch on BEQ
-	SIG_FOUND_EQUAL <= '1' when (unsigned(register_out1 xor register_out2) = 0) else '0';
+	--SIG_BEG_EQ <= '1' when (unsigned(register_out1 xor register_out2) = 0) else '0';
+	SIG_BEG_EQ <= '1' when (unsigned(register_out1) = unsigned(register_out2)) else '0';
+        
+	--calculating jump address and sending to output port
+	RF_JUMP_ADD <= register_out2 when CTL_JLR = '1' else	
+		       ADDRESS ;
 
 
 end architecture rtl;

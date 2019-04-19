@@ -22,28 +22,30 @@ architecture rtl of decode_stage is
 	alias PC_INX :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is PIPE_REG_FETCH (PIPE_REG_FETCH_SIZE -1 downto GLOBAL_WIDTH);
 
 
-	alias RS1 : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(2 downto 0);
-	alias RS2 : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(5 downto 3);
-	alias RD  : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(8 downto 6);
-	alias ADDRESS : STD_LOGIC_VECTOR(15 downto 0) is CTL_WORD(24 downto 9);
---	alias IMMEDIATE_16 : STD_LOGIC_VECTOR(15 downto 0) is CTL_WORD(40 downto 25);
-	alias CTL_MODIFY_FLAGS : STD_LOGIC_VECTOR(1 downto 0) is CTL_WORD(26 downto 25); -- modify the flags or not "CZ"
-	alias CTL_BEQ : STD_LOGIC is CTL_WORD(27);
-	alias CTL_JLR : STD_LOGIC is CTL_WORD(28);
-	alias CTL_JAL : STD_LOGIC is CTL_WORD(29);
+	alias CTL_MODIFY_FLAGS : STD_LOGIC_VECTOR(1 downto 0) is CTL_WORD(1  downto 0); -- modify the flags or not "CZ"
+	alias CTL_BEQ : STD_LOGIC is CTL_WORD(2);
+	alias CTL_JLR : STD_LOGIC is CTL_WORD(3);
+	alias CTL_JAL : STD_LOGIC is CTL_WORD(4);
 	
-	alias CTL_OPERATION_SEL : STD_LOGIC is CTL_WORD(30);
-	alias CTL_WRITE_REG : STD_LOGIC is CTL_WORD(31);
-	alias CTL_MEMW : STD_LOGIC is CTL_WORD(32);
-	alias CTL_MEMR : STD_LOGIC is CTL_WORD(33);
-	alias CTL_SEL_IMMEDIATE : STD_LOGIC is CTL_WORD(34);
+	alias CTL_OPERATION_SEL : STD_LOGIC is CTL_WORD(5);
+	alias CTL_WRITE_REG : STD_LOGIC is CTL_WORD(6);
+	alias CTL_MEMW : STD_LOGIC is CTL_WORD(7);
+	alias CTL_MEMR : STD_LOGIC is CTL_WORD(8);
+	alias CTL_SEL_IMMEDIATE : STD_LOGIC is CTL_WORD(9);
 	
-	alias CTL_ADI : STD_LOGIC is CTL_WORD(35);
-	alias CTL_LH : STD_LOGIC is CTL_WORD(36);
-	alias CTL_SIGNALS : STD_LOGIC_VECTOR(11 downto 0) is CTL_WORD(36 downto 25);
+	alias CTL_ADI : STD_LOGIC is CTL_WORD(10);
+	alias CTL_LH : STD_LOGIC is CTL_WORD(11);
+	alias CTL_SIGNALS : STD_LOGIC_VECTOR(11 downto 0) is CTL_WORD(11 downto 0);
 
-
-	alias IMMEDIATE_16 : STD_LOGIC_VECTOR(GLOBAL_WIDTH-1 downto 0) is CTL_WORD(52 downto 37);
+        
+	alias RD  : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(14 downto 12);
+	alias RS1 : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(17 downto 15);
+	alias RS2 : STD_LOGIC_VECTOR(2  downto 0) is CTL_WORD(20 downto 18);
+	
+	alias IMMEDIATE_16 : STD_LOGIC_VECTOR(GLOBAL_WIDTH-1 downto 0) is CTL_WORD(36 downto 21);
+	
+	
+	alias ADDRESS : STD_LOGIC_VECTOR(15 downto 0) is CTL_WORD(52 downto 37);
 
 
 	alias OPCODE : STD_LOGIC_VECTOR (3 downto 0 ) is INSTRUCTION(15 downto 12);
@@ -124,6 +126,9 @@ begin
 	-- select immediate as operand 2
 	CTL_SEL_IMMEDIATE <= '1' when( (OPCODE = ADI) or (OPCODE = LW) or (OPCODE = SW)
 			     		or (OPCODE = LM) or (OPCODE = SM))else '0';
+
+	CTL_ADI <= '1' when (OPCODE = ADI) else '0';
+	CTL_LH  <= '1' when (OPCODE = LHI) else '0' ;
       
 	-- branch target addresses are not calculated in ALU 
 	
