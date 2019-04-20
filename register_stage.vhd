@@ -17,7 +17,7 @@ entity register_stage is port(PIPE_REG_RF : in 	STD_LOGIC_VECTOR(PIPE_REG_RF_SIZ
 			clk : in STD_LOGIC;
 			PIPE_REG_EX : out STD_LOGIC_VECTOR (PIPE_REG_EX_SIZE - 1 downto (GLOBAL_WIDTH*2));
 			RF_JUMP_ADD : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
-			SIG_BEG_EQ : out STD_LOGIC);
+			SIG_BEQ_EQ : out STD_LOGIC);
 
 end entity register_stage;
 
@@ -113,7 +113,7 @@ begin
 
 	--checking wether to branch on BEQ
 	--SIG_BEG_EQ <= '1' when (unsigned(register_out1 xor register_out2) = 0) else '0';
-	SIG_BEG_EQ <= '1' when (unsigned(register_out1) = unsigned(register_out2) and CTL_BEQ = '1') else '0';
+	SIG_BEQ_EQ <= '1' when (unsigned(register_out1) = unsigned(register_out2) and CTL_BEQ = '1') else '0';
         
 	--calculating jump address and sending to output porT
 	RF_JUMP_ADD <= register_out2 when CTL_JLR = '1' else	

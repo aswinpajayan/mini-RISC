@@ -10,7 +10,7 @@ use work.all;
 --	JUMP_ADD -- jump address
 --      alias alias_name : alias_type is object_name; 
 entity decode_stage is port(PIPE_REG_DEC : in 	STD_LOGIC_VECTOR(PIPE_REG_DEC_SIZE -1 downto 0);
-			PIPE_REG_RF : out STD_LOGIC_VECTOR (PIPE_REG_RF_SIZE - 1 downto 0));
+			PIPE_REG_RF : out STD_LOGIC_VECTOR(PIPE_REG_RF_SIZE - 1 downto GLOBAL_WIDTH *2));
 end entity decode_stage;
 
 architecture rtl of decode_stage is	
@@ -132,7 +132,7 @@ begin
 	CTL_SEL_IMMEDIATE <= '1' when( (OPCODE = ADI) or (OPCODE = LW) or (OPCODE = SW)
 			     		or (OPCODE = LM) or (OPCODE = SM))else '0';
 
-	CTL_VALIDATE_FLAG <= '1' when OPCODE = ADC or OPCODE = NDC or OPCODE = ADZ or OPCODE = NDZ  else '0';
+	CTL_VALIDATE_FLAG <= '1' when (OPCODE = ADC or OPCODE = NDC or OPCODE = ADZ or OPCODE = NDZ )  and not(INSTRUCTION(1 downto 0) = "00") else '0';
 	CTL_LHI  <= '1' when (OPCODE = LHI) else '0' ;
       
 	-- branch target addresses are not calculated in ALU 
@@ -142,8 +142,6 @@ begin
 			immediate_out_6 ;
 	
 
-	--passing on input pipeline(32) bits to output
-	PIPE_REG_RF(PIPE_REG_DEC_SIZE -1 downto 0) <= PIPE_REG_DEC;
 end architecture rtl;
 
 

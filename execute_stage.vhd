@@ -9,7 +9,7 @@ use work.all;
 --	CONTROL_WORD  = a standard logic vector which has all the control signals
 --      alias alias_name : alias_type is object_name; 
 entity execute_stage is port(PIPE_REG_EX : in 	STD_LOGIC_VECTOR(PIPE_REG_EX_SIZE -1 downto (GLOBAL_WIDTH*2));
-			EX_FLAGS : in STD_LOGIC_VECTOR(1 downto 0);  --previous intruction op / Forward pipeline
+			PREV_FLAGS : in STD_LOGIC_VECTOR(1 downto 0);  --previous intruction op / Forward pipeline
 			RF_CONDITION_CODE : in STD_LOGIC_VECTOR(1 downto 0);  --should be mapped to instn(1 downt 0)
 			PIPE_REG_MEM : out STD_LOGIC_VECTOR (PIPE_REG_MEM_SIZE - 1 downto (GLOBAL_WIDTH*2)));
 
@@ -122,13 +122,19 @@ begin
 	----we have to invalidate the CTL_WRITE_REG when conditions (C,Z) are not set
 	
 	PIPE_REG_MEM((GLOBAL_WIDTH *2 ) + 6) <= CTL_WRITE_REG when CTL_VALIDATE_FLAGS = '0' else 
-	'1' when ((RF_CONDITION_CODE(1) and EX_FLAGS(1)  ) = '1') or ((RF_CONDITION_CODE (0) and EX_FLAGS(0)) = '1') else '0';
+	'1' when ((RF_CONDITION_CODE(1) and PREV_FLAGS(1)  ) = '1') or ((RF_CONDITION_CODE (0) and PREV_FLAGS(0)) = '1') else '0';
 
 
 
 	PIPE_REG_MEM((GLOBAL_WIDTH *2) + 5 downto (GLOBAL_WIDTH *2)) <= PIPE_REG_EX((GLOBAL_WIDTH *2) + 5 downto (GLOBAL_WIDTH *2)) ;
 
+	C <= PREV_FLAGS(1) when CTL_MODIFY_FLAGS(1) = '0' else
+	     carry_out when ((not(CTL_VALIDATE_FLAGS)) or (CTL_VALIDATE_FLAGS and RF_CONDITION_CODE(1))) ='1' else
+		PREV_FLAGS(1);
 
+	Z <= PREV_FLAGS(0) when CTL_MODIFY_FLAGS(0) = '0' else
+	     carry_out when ((not(CTL_VALIDATE_FLAGS)) or (CTL_VALIDATE_FLAGS and RF_CONDITION_CODE(0))) ='1' else
+		PREV_FLAGS(1);
 
 
 end architecture rtl;
