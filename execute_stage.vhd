@@ -8,10 +8,10 @@ use work.all;
 --LEGEND 
 --	CONTROL_WORD  = a standard logic vector which has all the control signals
 --      alias alias_name : alias_type is object_name; 
-entity execute_stage is port(PIPE_REG_RF : in 	STD_LOGIC_VECTOR(PIPE_REG_RF_SIZE -1 downto (GLOBAL_WIDTH*2));
+entity execute_stage is port(PIPE_REG_EX : in 	STD_LOGIC_VECTOR(PIPE_REG_EX_SIZE -1 downto (GLOBAL_WIDTH*2));
 			EX_FLAGS : in STD_LOGIC_VECTOR(1 downto 0);  --previous intruction op / Forward pipeline
 			RF_CONDITION_CODE : in STD_LOGIC_VECTOR(1 downto 0);  --should be mapped to instn(1 downt 0)
-			PIPE_REG_EX : out STD_LOGIC_VECTOR (PIPE_REG_EX_SIZE - 1 downto (GLOBAL_WIDTH*2)));
+			PIPE_REG_MEM : out STD_LOGIC_VECTOR (PIPE_REG_MEM_SIZE - 1 downto (GLOBAL_WIDTH*2)));
 
 end entity execute_stage;
 
@@ -24,8 +24,8 @@ architecture rtl of execute_stage is
 	-------CTL_SIGNALS has previous CONTROL_WORD 
 
 	alias CTL_SIGNALS :STD_LOGIC_VECTOR(CONTROL_SIGNALS_WIDTH -1 downto 0) is
-		PIPE_REG_RF(PIPE_REG_RF_SIZE - (GLOBAL_WIDTH *3)- REG_ADD_WIDTH - 1
-				  downto PIPE_REG_FETCH_SIZE);
+		PIPE_REG_EX(PIPE_REG_EX_SIZE - (GLOBAL_WIDTH *3)- REG_ADD_WIDTH - 1
+				  downto GLOBAL_WIDTH *2);
 
 	alias CTL_MODIFY_FLAGS : STD_LOGIC_VECTOR(1 downto 0) is CTL_SIGNALS(1  downto 0); -- modify the flags or not "CZ"
 	alias CTL_BEQ : STD_LOGIC is CTL_SIGNALS(2);
@@ -44,42 +44,42 @@ architecture rtl of execute_stage is
 	--the outer ones are the ones which are taken out sooner
 	--writing in this cryptic way to avoid errors
 	alias RD  : STD_LOGIC_VECTOR(2  downto 0) is 
-		   PIPE_REG_RF(PIPE_REG_RF_SIZE - (GLOBAL_WIDTH *2) - 1
+		   PIPE_REG_EX(PIPE_REG_EX_SIZE - (GLOBAL_WIDTH *2) - 1
 		   			downto 
-					PIPE_REG_RF_SIZE - (GLOBAL_WIDTH *2)- REG_ADD_WIDTH);
+					PIPE_REG_EX_SIZE - (GLOBAL_WIDTH *2)- REG_ADD_WIDTH);
 	
 	
 	
 
 	alias OPERAND_2 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is 
-		PIPE_REG_RF(PIPE_REG_RF_SIZE -1 
-		downto PIPE_REG_RF_SIZE - GLOBAL_WIDTH); 
+		PIPE_REG_EX(PIPE_REG_EX_SIZE -1 
+		downto PIPE_REG_EX_SIZE - GLOBAL_WIDTH); 
 		
 	alias OPERAND_1 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is 
-		PIPE_REG_RF(PIPE_REG_RF_SIZE - GLOBAL_WIDTH -1   
-		downto PIPE_REG_RF_SIZE - (GLOBAL_WIDTH*2));   
+		PIPE_REG_EX(PIPE_REG_EX_SIZE - GLOBAL_WIDTH -1   
+		downto PIPE_REG_EX_SIZE - (GLOBAL_WIDTH*2));   
 	-- operand1 to the pipelie register this can be either imm16 or register
 	
 	alias IMMEDIATE_16 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is 
-		PIPE_REG_RF(PIPE_REG_RF_SIZE - (GLOBAL_WIDTH *2) - 1
-		downto PIPE_REG_RF_SIZE - (GLOBAL_WIDTH * 3));
+		PIPE_REG_EX(PIPE_REG_EX_SIZE - (GLOBAL_WIDTH *2) - 1
+		downto PIPE_REG_EX_SIZE - (GLOBAL_WIDTH * 3));
 
 ----------------aliases for next stage-----------------------------------------------
 	------OPERAND_1 and OPERAND_2 will be thrown out , RESULT will be stored
 	------in place of OPERAND_1 , also two flags will be saved 
 	alias C : STD_LOGIC is 
-	       PIPE_REG_EX(PIPE_REG_EX_SIZE - 1);
+	       PIPE_REG_MEM(PIPE_REG_MEM_SIZE - 1);
 
 	alias Z : STD_LOGIC is 
-	       PIPE_REG_EX(PIPE_REG_EX_SIZE - 2);
+	       PIPE_REG_MEM(PIPE_REG_MEM_SIZE - 2);
 	
 	alias ADDRESS : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is 
-		PIPE_REG_EX(PIPE_REG_EX_SIZE -2 -1 
-		downto PIPE_REG_EX_SIZE - 2 - GLOBAL_WIDTH); 
+		PIPE_REG_MEM(PIPE_REG_MEM_SIZE -2 -1 
+		downto PIPE_REG_MEM_SIZE - 2 - GLOBAL_WIDTH); 
 	
 	alias RESULT : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is 
-		PIPE_REG_EX(PIPE_REG_EX_SIZE -(GLOBAL_WIDTH) -2 -1 
-		downto PIPE_REG_EX_SIZE - 2 - GLOBAL_WIDTH*2); 
+		PIPE_REG_MEM(PIPE_REG_MEM_SIZE -(GLOBAL_WIDTH) -2 -1 
+		downto PIPE_REG_MEM_SIZE - 2 - GLOBAL_WIDTH*2); 
 ----------------signal declarations -------------------------------------------------
 	signal alu_out,operand_2_in:STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0); 
 	signal carry_out,zero_out :STD_LOGIC ; 	--should be updated based on condition flags 
@@ -114,19 +114,19 @@ begin
 
 
 --connecting remaining input and output ports 
-	PIPE_REG_EX(PIPE_REG_EX_SIZE - (GLOBAL_WIDTH *2) -2 -1 downto (GLOBAL_WIDTH *2) +7) 
-	<= PIPE_REG_RF(PIPE_REG_EX_SIZE - (GLOBAL_WIDTH *2) -2 -1 downto (GLOBAL_WIDTH *2) +7);
+	PIPE_REG_MEM(PIPE_REG_MEM_SIZE - (GLOBAL_WIDTH *2) -2 -1 downto (GLOBAL_WIDTH *2) +7) 
+	<= PIPE_REG_EX(PIPE_REG_MEM_SIZE - (GLOBAL_WIDTH *2) -2 -1 downto (GLOBAL_WIDTH *2) +7);
 
 
 	----we are calculating the output even for conditional add and conditional nand . 
 	----we have to invalidate the CTL_WRITE_REG when conditions (C,Z) are not set
 	
-	PIPE_REG_EX((GLOBAL_WIDTH *2 ) + 6) <= CTL_WRITE_REG when CTL_VALIDATE_FLAGS = '0' else 
+	PIPE_REG_MEM((GLOBAL_WIDTH *2 ) + 6) <= CTL_WRITE_REG when CTL_VALIDATE_FLAGS = '0' else 
 	'1' when ((RF_CONDITION_CODE(1) and EX_FLAGS(1)  ) = '1') or ((RF_CONDITION_CODE (0) and EX_FLAGS(0)) = '1') else '0';
 
 
 
-	PIPE_REG_EX((GLOBAL_WIDTH *2) + 5 downto (GLOBAL_WIDTH *2)) <= PIPE_REG_RF((GLOBAL_WIDTH *2) + 5 downto (GLOBAL_WIDTH *2)) ;
+	PIPE_REG_MEM((GLOBAL_WIDTH *2) + 5 downto (GLOBAL_WIDTH *2)) <= PIPE_REG_EX((GLOBAL_WIDTH *2) + 5 downto (GLOBAL_WIDTH *2)) ;
 
 
 

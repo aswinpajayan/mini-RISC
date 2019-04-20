@@ -9,13 +9,13 @@ use work.all;
 --	CONTROL_WORD  = a standard logic vector which has all the control signals
 --	JUMP_ADD -- jump address
 --      alias alias_name : alias_type is object_name; 
-entity register_stage is port(PIPE_REG_DECODE : in 	STD_LOGIC_VECTOR(PIPE_REG_DECODE_SIZE -1 downto (GLOBAL_WIDTH*2));
+entity register_stage is port(PIPE_REG_RF : in 	STD_LOGIC_VECTOR(PIPE_REG_RF_SIZE -1 downto (GLOBAL_WIDTH*2));
 			WB_RD :in STD_LOGIC_VECTOR (2 downto 0);
 			WB_RESULT : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 			WB_CTL_WRITE_REG : in STD_LOGIC;
 			WB_PC_INX : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 			clk : in STD_LOGIC;
-			PIPE_REG_RF : out STD_LOGIC_VECTOR (PIPE_REG_RF_SIZE - 1 downto (GLOBAL_WIDTH*2));
+			PIPE_REG_EX : out STD_LOGIC_VECTOR (PIPE_REG_EX_SIZE - 1 downto (GLOBAL_WIDTH*2));
 			RF_JUMP_ADD : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 			SIG_BEG_EQ : out STD_LOGIC);
 
@@ -29,7 +29,7 @@ architecture rtl of register_stage is
 -------------------- ALIAS declarations start------------------------------
 	-------CTL_WORD has previous CONTROL_WORD 
 
-	alias CTL_WORD :STD_LOGIC_VECTOR(CONTROL_WORD_WIDTH -1 downto 0) is PIPE_REG_DECODE(PIPE_REG_DECODE_SIZE-1 downto PIPE_REG_FETCH_SIZE);
+	alias CTL_WORD :STD_LOGIC_VECTOR(CONTROL_WORD_WIDTH -1 downto 0) is PIPE_REG_RF(PIPE_REG_RF_SIZE-1 downto GLOBAL_WIDTH *2 );
 
 	alias CTL_MODIFY_FLAGS : STD_LOGIC_VECTOR(1 downto 0) is CTL_WORD(1  downto 0); -- modify the flags or not "CZ"
 	alias CTL_BEQ : STD_LOGIC is CTL_WORD(2);
@@ -60,19 +60,19 @@ architecture rtl of register_stage is
 	
 
 	alias OPERAND_2 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is 
-		PIPE_REG_RF(PIPE_REG_RF_SIZE -1
-		downto PIPE_REG_RF_SIZE - GLOBAL_WIDTH); 
+		PIPE_REG_EX(PIPE_REG_EX_SIZE -1
+		downto PIPE_REG_EX_SIZE - GLOBAL_WIDTH); 
 	--adding operand2 to the pipeline register
 
 	alias OPERAND_1 : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0 ) is 
-		PIPE_REG_RF(PIPE_REG_RF_SIZE - GLOBAL_WIDTH -1   
-		downto PIPE_REG_RF_SIZE - (GLOBAL_WIDTH*2));   
+		PIPE_REG_EX(PIPE_REG_EX_SIZE - GLOBAL_WIDTH -1   
+		downto PIPE_REG_EX_SIZE - (GLOBAL_WIDTH*2));   
 
 
 	-- adding operand1 to the pipelie register this can be either imm16 or register
 	alias IMMEDIATE_16_OUT : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is 
-		PIPE_REG_RF(PIPE_REG_RF_SIZE - (GLOBAL_WIDTH *2) - 1
-		downto PIPE_REG_RF_SIZE - (GLOBAL_WIDTH * 3));
+		PIPE_REG_EX(PIPE_REG_EX_SIZE - (GLOBAL_WIDTH *2) - 1
+		downto PIPE_REG_EX_SIZE - (GLOBAL_WIDTH * 3));
 			
 ----------------signal declarations -------------------------------------------------
 	signal register_out1,register_out2 :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0); --
@@ -101,8 +101,8 @@ begin
 		data_in => WB_RESULT,
 		PC_in => WB_PC_INX);
 
-	PIPE_REG_RF((GLOBAL_WIDTH *2) + 11 downto GLOBAL_WIDTH *2) <= CTL_SIGNALS; 
-	PIPE_REG_RF((GLOBAL_WIDTH *2) +12 + 2 downto (GLOBAL_WIDTH *2)+ 12) <= RD;
+	PIPE_REG_EX((GLOBAL_WIDTH *2) + 11 downto GLOBAL_WIDTH *2) <= CTL_SIGNALS; 
+	PIPE_REG_EX((GLOBAL_WIDTH *2) +12 + 2 downto (GLOBAL_WIDTH *2)+ 12) <= RD;
 	
 	--adding operand 1 and operand2 to pipeline(47 downto 78)
 	OPERAND_1 <= register_out1;
