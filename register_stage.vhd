@@ -113,9 +113,9 @@ begin
 
 	--checking wether to branch on BEQ
 	--SIG_BEG_EQ <= '1' when (unsigned(register_out1 xor register_out2) = 0) else '0';
-	SIG_BEG_EQ <= '1' when (unsigned(register_out1) = unsigned(register_out2)) else '0';
+	SIG_BEG_EQ <= '1' when (unsigned(register_out1) = unsigned(register_out2) and CTL_BEQ = '1') else '0';
         
-	--calculating jump address and sending to output port
+	--calculating jump address and sending to output porT
 	RF_JUMP_ADD <= register_out2 when CTL_JLR = '1' else	
 		       ADDRESS ;
 

@@ -9,12 +9,11 @@ use work.all;
 --	PC_INC = PC + 1 next instruction
 --	JUMP_ADD -- jump address is calculated in Execute stage, stored in REG_PIPE_EX_MEM
 --	EPC	 -- Exception PC value , Value captured just before a pipeline stall 
----------TODO ______ decide how to get CTL_BRANCH
-entity fetch_stage is port(JUMP_ADD_JL,JUMP_ADD_JLR,BRANCH_ADD,EPC : in 	STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
+entity fetch_stage is port(RF_JUMP_ADDRESS,DEC_JUMP_ADDRESS,EPC : in 	STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 			clk,reset : in 	STD_LOGIC;
 			PC_INX,INSTN : out STD_LOGIC_VECTOR (GLOBAL_WIDTH -1 downto 0);
-			CTL_PC_IN : in STD_LOGIC_VECTOR(1 downto 0);
-			CTL_BRANCH : in STD_LOGIC);
+			SIG_BEQ_EQ : in STD_LOGIC;
+			RS_CTL_JLR,RS_CTL_BEQ,DEC_CTL_JAL : in STD_LOGIC);
 end entity fetch_stage;
 
 architecture rtl of fetch_stage is	
@@ -46,12 +45,10 @@ begin
 
      pc_inc <= std_logic_vector(unsigned(instn_address) + 1);
 	
-     mux_out <= pc_inc when not(CTL_BRANCH = '1') else  
-	       JUMP_ADD_JL when CTL_PC_IN = "00" else
-		JUMP_ADD_JLR when CTL_PC_IN = "01" else 
-		BRANCH_ADD when CTL_PC_IN = "10" else 
-		EPC when CTL_PC_IN = "11" ;
 
+     mux_out <= RF_JUMP_ADDRESS when ((RS_CTL_BEQ = '1'  and SIG_BEQ_EQ = '1') or RS_CTL_JLR = '1') else
+		DEC_JUMP_ADDRESS when (DEC_CTL_JAL = '1' ) else 
+		pc_inc;
      PC_INX <= pc_inc;
 
 end architecture rtl;
