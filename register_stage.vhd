@@ -107,8 +107,8 @@ begin
 	PIPE_REG_EX((GLOBAL_WIDTH *2) +12 + 2 downto (GLOBAL_WIDTH *2)+ 12) <= RD;
 	
 	--adding operand 1 and operand2 to pipeline(47 downto 78)
-	OPERAND_1 <= register_out1;
-	OPERAND_2 <= register_out2;
+	OPERAND_1 <=  FWD_DATA1 when (SIG_FWD1 = '1') else register_out1;
+	OPERAND_2 <=  FWD_DATA2 when (SIG_FWD2 = '1') else register_out2;
 	
 	--adding IMMEDIATE_16 to pipeline later used for address calculation
 	IMMEDIATE_16_OUT <= IMMEDIATE_16 ;
