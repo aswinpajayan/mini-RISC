@@ -44,6 +44,8 @@ architecture rtl of pipeline is
 				WB_CTL_WRITE_REG : in STD_LOGIC;
 				WB_PC_INX : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 				clk : in STD_LOGIC;
+				SIG_FWD1,SIG_FWD2 : in STD_LOGIC;
+				FWD_DATA1,FWD_DATA2 : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 				PIPE_REG_EX : out STD_LOGIC_VECTOR (PIPE_REG_EX_SIZE - 1 downto (GLOBAL_WIDTH*2));
 				RF_JUMP_ADD : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 				SIG_BEQ_EQ : out STD_LOGIC);
@@ -66,6 +68,17 @@ architecture rtl of pipeline is
 			 PIPE_REG_WB : out STD_LOGIC_VECTOR (PIPE_REG_WB_SIZE - 1 downto (GLOBAL_WIDTH*2)));
 
 	end component memory_stage;
+	
+
+	component hazard_detection is port(RF_RS1,RF_RS2: in STD_LOGIC_VECTOR(2 downto 0);
+		EX_RD,MEM_RD,WB_RD : in STD_LOGIC_VECTOR(2 downto 0);
+		EX_RESULT,MEM_RESULT,WB_RESULT : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
+		RESET_IN : in STD_LOGIC;
+		SIG_FLUSH,SIG_STALL : out STD_LOGIC_VECTOR(5 downto 0);
+		SIG_FWD1,SIG_FWD2 : out STD_LOGIC;
+		FWD_DATA1,FWD_DATA2 : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0));
+	end component hazard_detection;
+
 
 
 -----------------signal declarations ----------------------
@@ -90,27 +103,64 @@ signal GATED_CLK_RF 	: STD_LOGIC :='0';
 signal GATED_CLK_EX 	: STD_LOGIC :='0';
 signal GATED_CLK_MEM 	: STD_LOGIC :='0';
 signal GATED_CLK_WB 	: STD_LOGIC :='0';
-signal SIG_FLUSH_RF 	: STD_LOGIC :='0';
-signal SIG_FLUSH_DEC    : STD_LOGIC :='0';
-signal SIG_FLUSH_EX	: STD_LOGIC :='0';
-signal SIG_FLUSH_MEM 	: STD_LOGIC :='0';
-signal SIG_FLUSH_WB 	: STD_LOGIC :='0';
 
 signal RF_JUMP_ADD  : STD_LOGIC_VECTOR (GLOBAL_WIDTH -1 downto 0); -- connect to op port of RF stage 
 signal EPC 		: STD_LOGIC_VECTOR (GLOBAL_WIDTH -1 downto 0); --for exceptions, not used till now TODO
 signal RF_SIG_BEQ_EQ    : STD_LOGIC :='0'; 	--for connecting out port of RF stage to in of fetch stage 	
 signal RS_CTL_BEQ,RS_CTL_JLR,DEC_CTL_JAL : STD_LOGIC; --connecint
+signal SIG_STALL,SIG_FLUSH : STD_LOGIC_VECTOR (5 downto 0);
+signal SIG_FWD1,SIG_FWD2 : STD_LOGIC ; -- to connect to forward logic out 
+signal FWD_DATA1,FWD_DATA2 :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 ----------------------alias declarations-------------------
 
 ----------------------from various stages ----------------
 alias DEC_JUMP_ADDRESS : STD_LOGIC_VECTOR (GLOBAL_WIDTH - 1 downto 0) is sig_pipe_reg_rf_in(84 downto 69);
-alias WB_RD : STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_wb_out(PIPE_REG_WB_SIZE - GLOBAL_WIDTH -1 downto PIPE_REG_WB_SIZE - GLOBAL_WIDTH -3);
-alias WB_RESULT : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is sig_pipe_reg_wb_out(PIPE_REG_WB_SIZE - 1 downto PIPE_REG_WB_SIZE - GLOBAL_WIDTH);
+--alias WB_RD : STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_wb_out(PIPE_REG_WB_SIZE - GLOBAL_WIDTH -1 downto PIPE_REG_WB_SIZE - GLOBAL_WIDTH -3);
+--alias WB_RESULT : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is sig_pipe_reg_wb_out(PIPE_REG_WB_SIZE - 1 downto PIPE_REG_WB_SIZE - GLOBAL_WIDTH);
 alias WB_CTL_WRITE_REG : STD_LOGIC is sig_pipe_reg_wb_out((GLOBAL_WIDTH *2) + 6) ;
 alias WB_PC_INX : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is sig_pipe_reg_wb_out(GLOBAL_WIDTH *2 -1 downto GLOBAL_WIDTH);
 alias PREV_FLAGS : STD_LOGIC_VECTOR (1 downto 0) is sig_pipe_reg_mem_out(PIPE_REG_MEM_SIZE -1 downto PIPE_REG_MEM_SIZE -2);
 alias RF_CONDITION_CODE : STD_LOGIC_VECTOR (1 downto 0) is sig_pipe_reg_rf_out(GLOBAL_WIDTH -1 downto GLOBAL_WIDTH - 2);
 --last two bits of instruction (conditional execution )
+
+-------------aliases for stall logic output----------------
+
+alias 	SIG_FLUSH_FETCH :STD_LOGIC is SIG_FLUSH(0);
+alias	SIG_FLUSH_DEC   :STD_LOGIC is SIG_FLUSH(1);
+alias	SIG_FLUSH_RF    :STD_LOGIC is SIG_FLUSH(2);
+alias	SIG_FLUSH_EX    :STD_LOGIC is SIG_FLUSH(3);
+alias	SIG_FLUSH_MEM   :STD_LOGIC is SIG_FLUSH(4);
+alias	SIG_FLUSH_WB    :STD_LOGIC is SIG_FLUSH(5);
+alias	SIG_STALL_FETCH :STD_LOGIC is SIG_STALL(0);   
+alias	SIG_STALL_DEC   :STD_LOGIC is SIG_STALL(1); 
+alias	SIG_STALL_RF    :STD_LOGIC is SIG_STALL(2); 
+alias	SIG_STALL_EX    :STD_LOGIC is SIG_STALL(3); 
+alias	SIG_STALL_MEM   :STD_LOGIC is SIG_STALL(4); 
+alias	SIG_STALL_WB    :STD_LOGIC is SIG_STALL(5); 
+
+---------------aliases for hazard detection input---------------------
+---------------check alias declaration section of register_stage.vhd for clarity
+alias RF_RS1 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_rf_out(GLOBAL_WIDTH *2 + 17 downto GLOBAL_WIDTH *2 + 15);
+alias RF_RS2 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_rf_out(GLOBAL_WIDTH *2 + 20 downto GLOBAL_WIDTH *2 + 18);
+alias EX_RD 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_ex_out(GLOBAL_WIDTH *2 + 13 downto GLOBAL_WIDTH *2 + 11);
+alias MEM_RD 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_mem_out(GLOBAL_WIDTH *2 + 13 downto GLOBAL_WIDTH *2 + 11);
+alias WB_RD 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_wb_out(GLOBAL_WIDTH *2 + 13 downto GLOBAL_WIDTH *2 + 11);
+alias EX_RESULT	: STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is 
+	sig_pipe_reg_mem_in(PIPE_REG_MEM_SIZE -(GLOBAL_WIDTH) -2 -1 
+	downto PIPE_REG_MEM_SIZE - 2 - GLOBAL_WIDTH*2); 
+-------notice that for ex stage, result is taken before the pipeline---------------
+
+
+alias MEM_RESULT: STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is 
+	sig_pipe_reg_mem_out(PIPE_REG_MEM_SIZE -(GLOBAL_WIDTH) -2 -1 
+	downto PIPE_REG_MEM_SIZE - 2 - GLOBAL_WIDTH*2); 
+
+alias WB_RESULT	: STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is 
+	sig_pipe_reg_wb_out(PIPE_REG_WB_SIZE - 1 
+	downto PIPE_REG_WB_SIZE - GLOBAL_WIDTH);
+
+
+
 
 
 
@@ -174,6 +224,10 @@ begin
 			WB_CTL_WRITE_REG => WB_CTL_WRITE_REG,
 			WB_PC_INX => WB_PC_INX,
 			clk => clk,
+			SIG_FWD1 => SIG_FWD1,
+			SIG_FWD2 => SIG_FWD2,
+			FWD_DATA1 => FWD_DATA1,
+			FWD_DATA2 => FWD_DATA2,
 			PIPE_REG_EX => sig_pipe_reg_ex_in(PIPE_REG_EX_SIZE - 1 downto GLOBAL_WIDTH *2 ),
 			RF_JUMP_ADD => RF_JUMP_ADD,
 			SIG_BEQ_EQ => RF_SIG_BEQ_EQ);
@@ -188,13 +242,29 @@ begin
 	MEMORY_BLOCK : memory_stage port map(PIPE_REG_MEM => sig_pipe_reg_mem_out(PIPE_REG_MEM_SIZE -1 downto GLOBAL_WIDTH),
 			clk => clk,
 			PIPE_REG_WB => sig_pipe_reg_wb_in(PIPE_REG_WB_SIZE -1 downto GLOBAL_WIDTH *2 ));
+	
+	HAZARD_DETECT_BLOCK : hazard_detection port map(RF_RS1 => RF_RS1,
+				RF_RS2 => RF_RS2,
+				EX_RD  => EX_RD,
+				MEM_RD => MEM_RD,
+				WB_RD  => WB_RD,
+				RESET_IN => RESET_IN,
+				EX_RESULT => EX_RESULT,
+				MEM_RESULT => EX_RESULT,
+				WB_RESULT => WB_RESULT,
+				SIG_FLUSH => SIG_FLUSH,
+				SIG_STALL => SIG_STALL,
+				SIG_FWD1   => SIG_FWD1,
+				SIG_FWD2   => SIG_FWD2,
+				FWD_DATA1  => FWD_DATA1,
+				FWD_DATA2  => FWD_DATA2);
 
-	GATED_CLK_FETCH	 <= clk and '1'; --TODO change to and with stall logic 
-	GATED_CLK_DEC	 <= clk and '1'; --TODO change to and with stall logic 
-	GATED_CLK_RF	 <= clk and '1'; --TODO change to and with stall logic 
-	GATED_CLK_EX 	 <= clk and '1'; --TODO change to and with stall logic 
-	GATED_CLK_MEM 	 <= clk and '1'; --TODO change to and with stall logic 
-	GATED_CLK_WB 	 <= clk and '1'; --TODO change to and with stall logic 
+	GATED_CLK_FETCH	 <= clk and SIG_STALL_FETCH	; --TODO change to and with stall logic 
+	GATED_CLK_DEC	 <= clk and SIG_STALL_DEC	; --TODO change to and with stall logic 
+	GATED_CLK_RF	 <= clk and SIG_STALL_RF	; --TODO change to and with stall logic 
+	GATED_CLK_EX 	 <= clk and SIG_STALL_EX	; --TODO change to and with stall logic 
+	GATED_CLK_MEM 	 <= clk and SIG_STALL_MEM	; --TODO change to and with stall logic 
+	GATED_CLK_WB 	 <= clk and SIG_STALL_WB	; --TODO change to and with stall logic 
 
 ----------------------------rippling instruction and pc+1 value through each stages -----------------------------
 	sig_pipe_reg_rf_in (GLOBAL_WIDTH *2 - 1 downto 0) <= sig_pipe_reg_dec_out(GLOBAL_WIDTH *2 -1 downto 0);
