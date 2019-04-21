@@ -74,6 +74,7 @@ architecture rtl of pipeline is
 		EX_RD,MEM_RD,WB_RD : in STD_LOGIC_VECTOR(2 downto 0);
 		EX_RESULT,MEM_RESULT,WB_RESULT : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 		RESET_IN : in STD_LOGIC;
+		EX_CTL_WRITE_REG,MEM_CTL_WRITE_REG,WB_CTL_WRITE_REG : in STD_LOGIC;
 		SIG_FLUSH,SIG_STALL : out STD_LOGIC_VECTOR(5 downto 0);
 		SIG_FWD1,SIG_FWD2 : out STD_LOGIC;
 		FWD_DATA1,FWD_DATA2 : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0));
@@ -118,6 +119,8 @@ alias DEC_JUMP_ADDRESS : STD_LOGIC_VECTOR (GLOBAL_WIDTH - 1 downto 0) is sig_pip
 --alias WB_RD : STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_wb_out(PIPE_REG_WB_SIZE - GLOBAL_WIDTH -1 downto PIPE_REG_WB_SIZE - GLOBAL_WIDTH -3);
 --alias WB_RESULT : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is sig_pipe_reg_wb_out(PIPE_REG_WB_SIZE - 1 downto PIPE_REG_WB_SIZE - GLOBAL_WIDTH);
 alias WB_CTL_WRITE_REG : STD_LOGIC is sig_pipe_reg_wb_out((GLOBAL_WIDTH *2) + 6) ;
+alias EX_CTL_WRITE_REG : STD_LOGIC is sig_pipe_reg_mem_in((GLOBAL_WIDTH *2) + 6) ; --calculated at end of execute stage
+alias MEM_CTL_WRITE_REG : STD_LOGIC is sig_pipe_reg_mem_out((GLOBAL_WIDTH *2) + 6) ;
 alias WB_PC_INX : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is sig_pipe_reg_wb_out(GLOBAL_WIDTH *2 -1 downto GLOBAL_WIDTH);
 alias PREV_FLAGS : STD_LOGIC_VECTOR (1 downto 0) is sig_pipe_reg_mem_out(PIPE_REG_MEM_SIZE -1 downto PIPE_REG_MEM_SIZE -2);
 alias RF_CONDITION_CODE : STD_LOGIC_VECTOR (1 downto 0) is sig_pipe_reg_rf_out(GLOBAL_WIDTH -1 downto GLOBAL_WIDTH - 2);
@@ -158,7 +161,6 @@ alias MEM_RESULT: STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is
 alias WB_RESULT	: STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is 
 	sig_pipe_reg_wb_out(PIPE_REG_WB_SIZE - 1 
 	downto PIPE_REG_WB_SIZE - GLOBAL_WIDTH);
-
 
 
 
@@ -250,8 +252,11 @@ begin
 				WB_RD  => WB_RD,
 				RESET_IN => RESET_IN,
 				EX_RESULT => EX_RESULT,
-				MEM_RESULT => EX_RESULT,
+				MEM_RESULT => MEM_RESULT,
 				WB_RESULT => WB_RESULT,
+				EX_CTL_WRITE_REG => EX_CTL_WRITE_REG,
+				MEM_CTL_WRITE_REG => MEM_CTL_WRITE_REG,
+				WB_CTL_WRITE_REG => WB_CTL_WRITE_REG,
 				SIG_FLUSH => SIG_FLUSH,
 				SIG_STALL => SIG_STALL,
 				SIG_FWD1   => SIG_FWD1,
