@@ -73,8 +73,9 @@ architecture rtl of pipeline is
 	component hazard_detection is port(RF_RS1,RF_RS2: in STD_LOGIC_VECTOR(2 downto 0);
 		EX_RD,MEM_RD,WB_RD : in STD_LOGIC_VECTOR(2 downto 0);
 		EX_RESULT,MEM_RESULT,WB_RESULT : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
-		RESET_IN : in STD_LOGIC;
+		RESET_IN,clk : in STD_LOGIC;
 		EX_CTL_WRITE_REG,MEM_CTL_WRITE_REG,WB_CTL_WRITE_REG : in STD_LOGIC;
+		DEC_CTL_JAL,DEC_CTL_JLR,RF_CTL_JLR,SIG_BEQ_EQ : in STD_LOGIC;
 		SIG_FLUSH,SIG_STALL : out STD_LOGIC_VECTOR(5 downto 0);
 		SIG_FWD1,SIG_FWD2 : out STD_LOGIC;
 		FWD_DATA1,FWD_DATA2 : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0));
@@ -108,7 +109,7 @@ signal GATED_CLK_WB 	: STD_LOGIC :='0';
 signal RF_JUMP_ADD  : STD_LOGIC_VECTOR (GLOBAL_WIDTH -1 downto 0); -- connect to op port of RF stage 
 signal EPC 		: STD_LOGIC_VECTOR (GLOBAL_WIDTH -1 downto 0); --for exceptions, not used till now TODO
 signal RF_SIG_BEQ_EQ    : STD_LOGIC :='0'; 	--for connecting out port of RF stage to in of fetch stage 	
-signal RS_CTL_BEQ,RS_CTL_JLR,DEC_CTL_JAL : STD_LOGIC; --connecint
+--signal RS_CTL_BEQ,RS_CTL_JLR : STD_LOGIC; --connecint
 signal SIG_STALL,SIG_FLUSH : STD_LOGIC_VECTOR (5 downto 0);
 signal SIG_FWD1,SIG_FWD2 : STD_LOGIC ; -- to connect to forward logic out 
 signal FWD_DATA1,FWD_DATA2 :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
@@ -162,8 +163,10 @@ alias WB_RESULT	: STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is
 	sig_pipe_reg_wb_out(PIPE_REG_WB_SIZE - 1 
 	downto PIPE_REG_WB_SIZE - GLOBAL_WIDTH);
 
-
-
+alias	DEC_CTL_JAL : STD_LOGIC is sig_pipe_reg_rf_in(GLOBAL_WIDTH *2 +  4);
+alias	DEC_CTL_JLR : STD_LOGIC is sig_pipe_reg_rf_in(GLOBAL_WIDTH *2 +  3);
+alias	RF_CTL_JLR  : STD_LOGIC is sig_pipe_reg_rf_out (GLOBAL_WIDTH *2 +  3);
+alias 	RF_CTL_BEQ  : STD_LOGIC is sig_pipe_reg_rf_out (GLOBAL_WIDTH *2 + 2);
 
 
 begin
@@ -212,8 +215,8 @@ begin
 			PC_INX => sig_pipe_reg_dec_in (GLOBAL_WIDTH*2 -1 downto GLOBAL_WIDTH),
 			INSTN => sig_pipe_reg_dec_in(GLOBAL_WIDTH -1 downto 0),
 			SIG_BEQ_EQ => RF_SIG_BEQ_EQ,
-			RS_CTL_BEQ => RS_CTL_BEQ,
-			RS_CTL_JLR => RS_CTL_JLR,
+			RS_CTL_BEQ => RF_CTL_BEQ,
+			RS_CTL_JLR => RF_CTL_JLR,
 			DEC_CTL_JAL =>DEC_CTL_JAL
 		);
 
@@ -232,7 +235,7 @@ begin
 			FWD_DATA2 => FWD_DATA2,
 			PIPE_REG_EX => sig_pipe_reg_ex_in(PIPE_REG_EX_SIZE - 1 downto GLOBAL_WIDTH *2 ),
 			RF_JUMP_ADD => RF_JUMP_ADD,
-			SIG_BEQ_EQ => RF_SIG_BEQ_EQ);
+			SIG_BEQ_EQ => rF_SIG_BEQ_EQ);
 
 	EXECUTE_BLOCK : execute_stage port map(PIPE_REG_EX => sig_pipe_reg_ex_out(PIPE_REG_EX_SIZE - 1 downto GLOBAL_WIDTH *2),
 			PREV_FLAGS => PREV_FLAGS,
@@ -257,6 +260,11 @@ begin
 				EX_CTL_WRITE_REG => EX_CTL_WRITE_REG,
 				MEM_CTL_WRITE_REG => MEM_CTL_WRITE_REG,
 				WB_CTL_WRITE_REG => WB_CTL_WRITE_REG,
+				DEC_CTL_JAL => DEC_CTL_JAL,
+				DEC_CTL_JLR => DEC_CTL_JLR,
+				RF_CTL_JLR => RF_CTL_JLR,
+				SIG_BEQ_EQ => RF_SIG_BEQ_EQ,
+				clk => clk,
 				SIG_FLUSH => SIG_FLUSH,
 				SIG_STALL => SIG_STALL,
 				SIG_FWD1   => SIG_FWD1,
