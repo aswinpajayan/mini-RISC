@@ -26,6 +26,7 @@ architecture rtl of hazard_detection is
 
 signal SIG_FLUSH_d : STD_LOGIC_VECTOR(5 downto 0);
 signal sig_SIG_FWD1,sig_SIG_FWD2 ,sig_no_flush,sig_LOAD_DEP :STD_LOGIC;
+signal sig_const_zero : STD_LOGIC := '0';
 
 
 
@@ -49,15 +50,17 @@ begin
 	DELAY_FLUSH : generic_register generic map(6)
 			port map(data_in => SIG_FLUSH_d,
 			clk => clk,
-			clear => sig_no_flush,
+			clear => '0',
 			data_out => SIG_FLUSH);
 
 --	SIG_FLUSH_FETCH <='1' when (DEC_CTL_JAL or DEC_CTL_JLR) = '1' else
 --			'1' when   (RF_CTL_JLR  and SIG_BEQ_EQ )=  '1' else '0';
-	SIG_FLUSH_DEC   <='1' when  (DEC_CTL_JAL  or DEC_CTL_JLR )=  '1' else
+	SIG_FLUSH_DEC   <= '1' when RESET_IN = '1' else
+			   '1' when  (DEC_CTL_JAL  or DEC_CTL_JLR )=  '1' else
 			  '1' when (RF_CTL_JLR  = '1')  else 
 			  '1' when  (RF_CTL_BEQ  and SIG_BEQ_EQ) = '1' else '0';
-	SIG_FLUSH_RF   <='1' when  (DEC_CTL_JAL  or DEC_CTL_JLR )=  '1' else
+	SIG_FLUSH_RF   <= '1' when RESET_IN = '1' else
+			  '1' when  (DEC_CTL_JAL  or DEC_CTL_JLR )=  '1' else
 			  '1' when (RF_CTL_JLR  = '1')  else 
 			  '1' when  (RF_CTL_BEQ  and SIG_BEQ_EQ) = '1' else '0';
 	SIG_FLUSH_FETCH    <='1' when RESET_IN = '1' else '0';
