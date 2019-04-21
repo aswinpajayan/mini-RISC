@@ -7,6 +7,7 @@ entity hazard_detection is port(RF_RS1,RF_RS2: in STD_LOGIC_VECTOR(2 downto 0);
 	EX_RESULT,MEM_RESULT,WB_RESULT : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 	EX_CTL_WRITE_REG,MEM_CTL_WRITE_REG,WB_CTL_WRITE_REG,RF_CTL_BEQ : in STD_LOGIC;
 	DEC_CTL_JAL,DEC_CTL_JLR,RF_CTL_JLR,SIG_BEQ_EQ : in STD_LOGIC;
+	EX_CTL_MEMR : STD_LOGIC; --lookout for load dependncy
 	RESET_IN ,clk: in STD_LOGIC;
 	SIG_FLUSH,SIG_STALL : out STD_LOGIC_VECTOR(5 downto 0);
 	SIG_FWD1,SIG_FWD2 : out STD_LOGIC;
@@ -24,6 +25,10 @@ architecture rtl of hazard_detection is
 	end component generic_register;
 
 signal SIG_FLUSH_d : STD_LOGIC_VECTOR(5 downto 0);
+signal sig_SIG_FWD1,sig_SIG_FWD2 ,sig_NOT_RESET_IN :STD_LOGIC;
+
+
+
 alias 	SIG_FLUSH_FETCH :STD_LOGIC is SIG_FLUSH_d(0);
 alias	SIG_FLUSH_DEC   :STD_LOGIC is SIG_FLUSH_d(1);
 alias	SIG_FLUSH_RF    :STD_LOGIC is SIG_FLUSH_d(2);
@@ -44,7 +49,7 @@ begin
 	DELAY_FLUSH : generic_register generic map(6)
 			port map(data_in => SIG_FLUSH_d,
 			clk => clk,
-			clear => RESET_IN,
+			clear => sig_NOT_RESET_IN ,
 			data_out => SIG_FLUSH);
 
 --	SIG_FLUSH_FETCH <='1' when (DEC_CTL_JAL or DEC_CTL_JLR) = '1' else
@@ -60,17 +65,21 @@ begin
 	
 	SIG_STALL_FETCH<= '0' when RESET_IN = '1' else '1';   
 	SIG_STALL_DEC  <= '0' when RESET_IN = '1' else '1'; 
-	SIG_STALL_RF   <= '0' when RESET_IN = '1' else '1'; 
 	SIG_STALL_EX   <= '0' when RESET_IN = '1' else '1'; 
 	SIG_STALL_MEM  <= '0' when RESET_IN = '1' else '1'; 
 	SIG_STALL_WB   <= '0' when RESET_IN = '1' else '1'; 
 	
-	SIG_FWD1 <= '1' when (((RF_RS1 = EX_RD) and (EX_CTL_WRITE_REG = '1') ) or 
+	sig_NOT_RESET_IN <= not(RESET_IN);
+
+	SIG_STALL_RF <= sig_SIG_FWD1 or sig_SIG_FWD2 when EX_CTL_MEMR = '1' else '0';
+
+	
+	sig_SIG_FWD1 <= '1' when (((RF_RS1 = EX_RD) and (EX_CTL_WRITE_REG = '1') ) or 
 		    	((RF_RS1 = MEM_RD) and (MEM_CTL_WRITE_REG = '1')) or 
 			((RF_RS1 = WB_RD) and (WB_CTL_WRITE_REG = '1')))  else
 		     '0';
 		
-	SIG_FWD2 <= '1' when (((RF_RS2 = EX_RD) and (EX_CTL_WRITE_REG = '1') ) or 
+	sig_SIG_FWD2 <= '1' when (((RF_RS2 = EX_RD) and (EX_CTL_WRITE_REG = '1') ) or 
 			((RF_RS2 = MEM_RD) and (MEM_CTL_WRITE_REG = '1')) or 
 			((RF_RS2 = WB_RD) and (WB_CTL_WRITE_REG = '1')))  else
 		     '0';

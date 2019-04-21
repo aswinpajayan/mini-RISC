@@ -76,6 +76,7 @@ architecture rtl of pipeline is
 		RESET_IN,clk : in STD_LOGIC;
 		EX_CTL_WRITE_REG,MEM_CTL_WRITE_REG,WB_CTL_WRITE_REG : in STD_LOGIC;
 		DEC_CTL_JAL,DEC_CTL_JLR,RF_CTL_JLR,SIG_BEQ_EQ,RF_CTL_BEQ : in STD_LOGIC;
+		EX_CTL_MEMR : in STD_LOGIC;
 		SIG_FLUSH,SIG_STALL : out STD_LOGIC_VECTOR(5 downto 0);
 		SIG_FWD1,SIG_FWD2 : out STD_LOGIC;
 		FWD_DATA1,FWD_DATA2 : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0));
@@ -167,6 +168,7 @@ alias	DEC_CTL_JAL : STD_LOGIC is sig_pipe_reg_rf_in(GLOBAL_WIDTH *2 +  4);
 alias	DEC_CTL_JLR : STD_LOGIC is sig_pipe_reg_rf_in(GLOBAL_WIDTH *2 +  3);
 alias	RF_CTL_JLR  : STD_LOGIC is sig_pipe_reg_rf_out (GLOBAL_WIDTH *2 +  3);
 alias 	RF_CTL_BEQ  : STD_LOGIC is sig_pipe_reg_rf_out (GLOBAL_WIDTH *2 + 2);
+alias   EX_CTL_MEMR : STD_LOGIC is sig_pipe_reg_ex_out (GLOBAL_WIDTH *2 + 8);
 
 
 begin
@@ -265,6 +267,7 @@ begin
 				RF_CTL_JLR => RF_CTL_JLR,
 				RF_CTL_BEQ => RF_CTL_BEQ,
 				SIG_BEQ_EQ => RF_SIG_BEQ_EQ,
+				EX_CTL_MEMR => EX_CTL_MEMR,
 				clk => clk,
 				SIG_FLUSH => SIG_FLUSH,
 				SIG_STALL => SIG_STALL,
