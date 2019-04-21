@@ -73,6 +73,7 @@ architecture rtl of memory_stage is
 	
 ----------------signal declarations -------------------------------------------------
 	signal memory_out :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0); 
+	signal shadowed_address :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0); 
 ----------------component declarations-----------------------------------------------
 
 	-- DATA_MEM_SIZE is in number of words 
@@ -87,7 +88,7 @@ begin
 
 
 	D_MEM : data_memory generic map (D_MEM_SIZE,GLOBAL_WIDTH)
-			    port map(address =>ADDRESS,
+			    port map(address =>shadowed_address,
 				     clk =>clk,
 				     write_en =>CTL_MEMW,
 				     data_out =>memory_out,
@@ -106,6 +107,10 @@ begin
 
 	PIPE_REG_WB(PIPE_REG_WB_SIZE - (GLOBAL_WIDTH ) -1 downto (GLOBAL_WIDTH *2)) 
 	<= PIPE_REG_MEM(PIPE_REG_MEM_SIZE - (GLOBAL_WIDTH *2) -2 -1 downto (GLOBAL_WIDTH *2));
+	
+	shadowed_address(D_MEM_ADD_SIZE -1 downto 0) <= ADDRESS(D_MEM_ADD_SIZE -1 downto 0);
+	shadowed_address(GLOBAL_WIDTH-1 downto D_MEM_ADD_SIZE) <= (others => '0'); 
+--above is a simple hack to avoid "FATAL ERROR" array out of bounds;
 
 
 end architecture rtl;
