@@ -5,7 +5,7 @@ use work.CONSTANTS.all;
 entity hazard_detection is port(RF_RS1,RF_RS2: in STD_LOGIC_VECTOR(2 downto 0);
 	EX_RD,MEM_RD,WB_RD : in STD_LOGIC_VECTOR(2 downto 0);
 	EX_RESULT,MEM_RESULT,WB_RESULT : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
-	EX_CTL_WRITE_REG,MEM_CTL_WRITE_REG,WB_CTL_WRITE_REG : in STD_LOGIC;
+	EX_CTL_WRITE_REG,MEM_CTL_WRITE_REG,WB_CTL_WRITE_REG,RF_CTL_BEQ : in STD_LOGIC;
 	DEC_CTL_JAL,DEC_CTL_JLR,RF_CTL_JLR,SIG_BEQ_EQ : in STD_LOGIC;
 	RESET_IN ,clk: in STD_LOGIC;
 	SIG_FLUSH,SIG_STALL : out STD_LOGIC_VECTOR(5 downto 0);
@@ -47,9 +47,12 @@ begin
 			clear => RESET_IN,
 			data_out => SIG_FLUSH);
 
-	SIG_FLUSH_FETCH <='1' when (DEC_CTL_JAL or DEC_CTL_JLR) = '1' else
-			'1' when   (RF_CTL_JLR  and SIG_BEQ_EQ )=  '1' else '0';
-	SIG_FLUSH_DEC   <='1' when  (RF_CTL_JLR  and SIG_BEQ_EQ )=  '1' else '0';
+--	SIG_FLUSH_FETCH <='1' when (DEC_CTL_JAL or DEC_CTL_JLR) = '1' else
+--			'1' when   (RF_CTL_JLR  and SIG_BEQ_EQ )=  '1' else '0';
+	SIG_FLUSH_DEC   <='1' when  (DEC_CTL_JAL  or DEC_CTL_JLR )=  '1' else
+			  '1' when (RF_CTL_JLR  = '1')  else 
+			  '1' when  (RF_CTL_BEQ  and SIG_BEQ_EQ) = '1' else '0';
+	SIG_FLUSH_FETCH    <='1' when RESET_IN = '1' else '0';
 	SIG_FLUSH_RF    <='1' when RESET_IN = '1' else '0';
 	SIG_FLUSH_EX    <='1' when RESET_IN = '1' else '0';
 	SIG_FLUSH_MEM   <='1' when RESET_IN = '1' else '0';
