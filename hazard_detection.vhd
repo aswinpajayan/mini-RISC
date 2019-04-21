@@ -25,7 +25,7 @@ architecture rtl of hazard_detection is
 	end component generic_register;
 
 signal SIG_FLUSH_d : STD_LOGIC_VECTOR(5 downto 0);
-signal sig_SIG_FWD1,sig_SIG_FWD2 ,sig_NOT_RESET_IN :STD_LOGIC;
+signal sig_SIG_FWD1,sig_SIG_FWD2 ,sig_NOT_RESET_IN,sig_LOAD_DEP :STD_LOGIC;
 
 
 
@@ -69,9 +69,11 @@ begin
 	
 	sig_NOT_RESET_IN <= not(RESET_IN);
 
-	SIG_STALL_RF <= sig_SIG_FWD1 or sig_SIG_FWD2 when EX_CTL_MEMR = '1' else '0';
-	SIG_STALL_DEC <= sig_SIG_FWD1 or sig_SIG_FWD2 when EX_CTL_MEMR = '1' else '0';
-	SIG_STALL_FETCH <= sig_SIG_FWD1 or sig_SIG_FWD2 when EX_CTL_MEMR = '1' else '0';
+	sig_LOAD_DEP <=  '1' when ((RF_RS1 = EX_RD) or (RF_RS2 = EX_RD)) else '0';
+
+	SIG_STALL_RF    <= not(sig_LOAD_DEP) when EX_CTL_MEMR = '1' else '1';
+	SIG_STALL_DEC    <= not(sig_LOAD_DEP) when EX_CTL_MEMR = '1' else '1';
+	SIG_STALL_FETCH   <= not(sig_LOAD_DEP) when EX_CTL_MEMR = '1' else '1';
 
 	
 	sig_SIG_FWD1 <= '1' when (((RF_RS1 = EX_RD) and (EX_CTL_WRITE_REG = '1') ) or 
