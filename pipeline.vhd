@@ -145,9 +145,9 @@ alias	SIG_STALL_WB    :STD_LOGIC is SIG_STALL(5);
 ---------------check alias declaration section of register_stage.vhd for clarity
 alias RF_RS1 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_rf_out(GLOBAL_WIDTH *2 + 17 downto GLOBAL_WIDTH *2 + 15);
 alias RF_RS2 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_rf_out(GLOBAL_WIDTH *2 + 20 downto GLOBAL_WIDTH *2 + 18);
-alias EX_RD 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_ex_out(GLOBAL_WIDTH *2 + 13 downto GLOBAL_WIDTH *2 + 11);
-alias MEM_RD 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_mem_out(GLOBAL_WIDTH *2 + 13 downto GLOBAL_WIDTH *2 + 11);
-alias WB_RD 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_wb_out(GLOBAL_WIDTH *2 + 13 downto GLOBAL_WIDTH *2 + 11);
+alias EX_RD 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_ex_out(GLOBAL_WIDTH *2 + 14 downto GLOBAL_WIDTH *2 + 12);
+alias MEM_RD 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_mem_out(GLOBAL_WIDTH *2 + 14 downto GLOBAL_WIDTH *2 + 12);
+alias WB_RD 	: STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_wb_out(GLOBAL_WIDTH *2 + 14 downto GLOBAL_WIDTH *2 + 12);
 alias EX_RESULT	: STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is 
 	sig_pipe_reg_mem_in(PIPE_REG_MEM_SIZE -(GLOBAL_WIDTH) -2 -1 
 	downto PIPE_REG_MEM_SIZE - 2 - GLOBAL_WIDTH*2); 
