@@ -1,10 +1,10 @@
 
 #deposited instructions for 
 #	--LHI R1,0x2000
-#	--LHI R0,0x01
+#	--LHI R0,0x4000
 #	--ADD R1,R0,R4
-#	--SW  R4,R0,10
-#	--LW  R2,R0,10
+#	--SW  R4,R0,0x10
+#	--LW  R2,R0,0x10
 #	--LHI R1,0xC000
 #	--LHI R2,0xE000
 vsim work.pipeline
@@ -16,8 +16,8 @@ add wave -position insertpoint  \
 sim:/pipeline/REGISTER_BLOCK/RF/rblock
 
 add list -hexadecimal *
-force -freeze sim:/pipeline/FETCH_BLOCK/I_MEMORY/rblock(0)  0011001100100000 0	
-force -freeze sim:/pipeline/FETCH_BLOCK/I_MEMORY/rblock(1)  0011000100000001 0	
+force -freeze sim:/pipeline/FETCH_BLOCK/I_MEMORY/rblock(0)  0011001001000000 0	
+force -freeze sim:/pipeline/FETCH_BLOCK/I_MEMORY/rblock(1)  0011000010000000 0	
 force -freeze sim:/pipeline/FETCH_BLOCK/I_MEMORY/rblock(3)  0000001000010000 0	
 force -freeze sim:/pipeline/FETCH_BLOCK/I_MEMORY/rblock(4)  0101100000010000 0	
 force -freeze sim:/pipeline/FETCH_BLOCK/I_MEMORY/rblock(5)  0100010000010000 0	
