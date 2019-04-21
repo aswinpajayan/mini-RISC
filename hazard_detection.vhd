@@ -5,6 +5,7 @@ use work.CONSTANTS.all;
 entity hazard_detection is port(RF_RS1,RF_RS2: in STD_LOGIC_VECTOR(2 downto 0);
 	EX_RD,MEM_RD,WB_RD : in STD_LOGIC_VECTOR(2 downto 0);
 	EX_RESULT,MEM_RESULT,WB_RESULT : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
+	EX_CTL_WRITE_REG,MEM_CTL_WRITE_REG,WB_CTL_WRITE_REG : in STD_LOGIC;
 	RESET_IN : in STD_LOGIC;
 	SIG_FLUSH,SIG_STALL : out STD_LOGIC_VECTOR(5 downto 0);
 	SIG_FWD1,SIG_FWD2 : out STD_LOGIC;
@@ -45,12 +46,26 @@ begin
 	SIG_STALL_MEM  <= '0' when RESET_IN = '1' else '1'; 
 	SIG_STALL_WB   <= '0' when RESET_IN = '1' else '1'; 
 	
-	SIG_FWD1 <= '1' when ((RF_RS1 = EX_RD) or (RF_RS1 = MEM_RD) or (RF_RS1 = WB_RD))  else '0';
+	SIG_FWD1 <= '1' when (((RF_RS1 = EX_RD) and (EX_CTL_WRITE_REG = '1') ) or 
+		    	((RF_RS1 = MEM_RD) and (MEM_CTL_WRITE_REG = '1')) or 
+			((RF_RS1 = WB_RD) and (WB_CTL_WRITE_REG = '1')))  else
+		     '0';
+		
+	SIG_FWD2 <= '1' when (((RF_RS2 = EX_RD) and (EX_CTL_WRITE_REG = '1') ) or 
+			((RF_RS2 = MEM_RD) and (MEM_CTL_WRITE_REG = '1')) or 
+			((RF_RS2 = WB_RD) and (WB_CTL_WRITE_REG = '1')))  else
+		     '0';
 
-	FWD_DATA2 <= EX_RESULT when RF_RS1 = EX_RD else
+
+	FWD_DATA1 <= EX_RESULT when RF_RS1 = EX_RD else
 		    MEM_RESULT when RF_RS1 = MEM_RD else
-		    WB_RESULT when RF_RS1 = WB_RD;
+		    WB_RESULT when RF_RS1 = WB_RD else
+		    (others => '0');
 
+	FWD_DATA2 <= EX_RESULT when RF_RS2 = EX_RD else
+		    MEM_RESULT when RF_RS2 = MEM_RD else
+		    WB_RESULT when RF_RS2 = WB_RD else
+		    (others => '0');
 
 
 end architecture rtl;
