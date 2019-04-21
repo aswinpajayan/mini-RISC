@@ -122,7 +122,7 @@ begin
 	CTL_OPERATION_SEL <= '1' when (OPCODE = ALL_NAND) else '0';
 
 	--write back to register file (dont write in these cases 
-	CTL_WRITE_REG <= '0' when( (OPCODE = SW) or (OPCODE = SM ) or (OPCODE = BEQ)) else '1';
+	CTL_WRITE_REG <= '0' when( (OPCODE = SW) or (OPCODE = SM ) or (OPCODE = BEQ) or unsigned(INSTRUCTION) = 0 ) else '1';
 
 	-- mem read write CTL
 	CTL_MEMW <= '1' when( (OPCODE = SW) or (OPCODE = SM)) else '0';
