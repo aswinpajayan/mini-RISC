@@ -99,7 +99,7 @@ begin
 
 	COMP_ALU : alu generic map(GLOBAL_WIDTH)
 		  port map(operand_1 => OPERAND_1,
-		  operand_2 => OPERAND_2,
+		  operand_2 => operand_2_in,
 		  operation_sel => CTL_OPERATION_SEL,
 		  result => alu_out,
 		  C => carry_out,
