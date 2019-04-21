@@ -63,8 +63,6 @@ begin
 	SIG_FLUSH_MEM   <='1' when RESET_IN = '1' else '0';
 	SIG_FLUSH_WB    <='1' when RESET_IN = '1' else '0';
 	
-	SIG_STALL_FETCH<= '0' when RESET_IN = '1' else '1';   
-	SIG_STALL_DEC  <= '0' when RESET_IN = '1' else '1'; 
 	SIG_STALL_EX   <= '0' when RESET_IN = '1' else '1'; 
 	SIG_STALL_MEM  <= '0' when RESET_IN = '1' else '1'; 
 	SIG_STALL_WB   <= '0' when RESET_IN = '1' else '1'; 
@@ -72,6 +70,8 @@ begin
 	sig_NOT_RESET_IN <= not(RESET_IN);
 
 	SIG_STALL_RF <= sig_SIG_FWD1 or sig_SIG_FWD2 when EX_CTL_MEMR = '1' else '0';
+	SIG_STALL_DEC <= sig_SIG_FWD1 or sig_SIG_FWD2 when EX_CTL_MEMR = '1' else '0';
+	SIG_STALL_FETCH <= sig_SIG_FWD1 or sig_SIG_FWD2 when EX_CTL_MEMR = '1' else '0';
 
 	
 	sig_SIG_FWD1 <= '1' when (((RF_RS1 = EX_RD) and (EX_CTL_WRITE_REG = '1') ) or 
