@@ -3,6 +3,10 @@ package CONSTANTS is
 	constant GLOBAL_WIDTH : POSITIVE := 16;
 	constant I_MEM_SIZE   : POSITIVE := 64;
 	constant DATA_MEM_SIZE : POSITIVE := 64;
+	constant D_MEM_SIZE :POSITIVE := 64;
+	constant D_MEM_ADD_SIZE : POSITIVE := 6; 
+	-- the above just to avoid execptions on array out of bound exceptions
+	-- add size = log2(D_MEM_SIZE) 
 	constant CONTROL_WORD_WIDTH : POSITIVE := 53;
 	constant IMM_IN_6 :POSITIVE := 6;
 	constant IMM_IN_9 :POSITIVE := 9;
@@ -14,6 +18,5 @@ package CONSTANTS is
 	constant CONTROL_SIGNALS_WIDTH : POSITIVE := 12;
 	constant REG_ADD_WIDTH : POSITIVE := 3;
 	constant PIPE_REG_WB_SIZE : POSITIVE := 63;
-	constant D_MEM_SIZE :POSITIVE := 64;
 	constant PIPE_REG_FETCH_SIZE :POSITIVE :=32;
 end package CONSTANTS;
