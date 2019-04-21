@@ -106,7 +106,7 @@ signal RS_CTL_BEQ,RS_CTL_JLR,DEC_CTL_JAL : STD_LOGIC; --connecint
 alias DEC_JUMP_ADDRESS : STD_LOGIC_VECTOR (GLOBAL_WIDTH - 1 downto 0) is sig_pipe_reg_rf_in(84 downto 69);
 alias WB_RD : STD_LOGIC_VECTOR(2 downto 0) is sig_pipe_reg_wb_out(PIPE_REG_WB_SIZE - GLOBAL_WIDTH -1 downto PIPE_REG_WB_SIZE - GLOBAL_WIDTH -3);
 alias WB_RESULT : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is sig_pipe_reg_wb_out(PIPE_REG_WB_SIZE - 1 downto PIPE_REG_WB_SIZE - GLOBAL_WIDTH);
-alias WB_CTL_WRITE_REG : STD_LOGIC is sig_pipe_reg_wb_out(GLOBAL_WIDTH + 6) ;
+alias WB_CTL_WRITE_REG : STD_LOGIC is sig_pipe_reg_wb_out((GLOBAL_WIDTH *2) + 6) ;
 alias WB_PC_INX : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is sig_pipe_reg_wb_out(GLOBAL_WIDTH *2 -1 downto GLOBAL_WIDTH);
 alias PREV_FLAGS : STD_LOGIC_VECTOR (1 downto 0) is sig_pipe_reg_mem_out(PIPE_REG_MEM_SIZE -1 downto PIPE_REG_MEM_SIZE -2);
 alias RF_CONDITION_CODE : STD_LOGIC_VECTOR (1 downto 0) is sig_pipe_reg_rf_out(GLOBAL_WIDTH -1 downto GLOBAL_WIDTH - 2);
