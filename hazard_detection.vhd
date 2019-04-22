@@ -25,8 +25,7 @@ architecture rtl of hazard_detection is
 	end component generic_register;
 
 signal SIG_FLUSH_d : STD_LOGIC_VECTOR(5 downto 0);
-signal sig_SIG_FWD1,sig_SIG_FWD2 ,sig_no_flush,sig_LOAD_DEP :STD_LOGIC;
-signal sig_zero : STD_LOGIC :='0';
+signal sig_SIG_FWD1,sig_SIG_FWD2 ,sig_NOT_RESET_IN,sig_LOAD_DEP :STD_LOGIC;
 
 
 
@@ -48,29 +47,21 @@ alias	SIG_STALL_WB    :STD_LOGIC is SIG_STALL(5);
 
 begin
 	DELAY_FLUSH : generic_register generic map(6)
-		port map(data_in => SIG_FLUSH_d,
-		clk => clk,
-		clear => sig_zero,
-		data_out => SIG_FLUSH);
+			port map(data_in => SIG_FLUSH_d,
+			clk => clk,
+			clear => sig_NOT_RESET_IN ,
+			data_out => SIG_FLUSH);
 
 --	SIG_FLUSH_FETCH <='1' when (DEC_CTL_JAL or DEC_CTL_JLR) = '1' else
 --			'1' when   (RF_CTL_JLR  and SIG_BEQ_EQ )=  '1' else '0';
-	SIG_FLUSH_RF   <= '1' when RESET_IN = '1' else 
-	'1' when  (DEC_CTL_JAL)=  '1' else
+	SIG_FLUSH_RF   <= '1' when RESET_IN = '1' else
+			  '1' when  (DEC_CTL_JAL  or DEC_CTL_JLR )=  '1' else
 			  '1' when (RF_CTL_JLR  = '1')  else 
 			  '1' when  (RF_CTL_BEQ  and SIG_BEQ_EQ) = '1' else '0';
-	--SIG_FLUSH_RF   <= '1' when RESET_IN = '1' else
---	'1' when  (DEC_CTL_JAL  or DEC_CTL_JLR )=  '1' else
-			--  '1' when (RF_CTL_JAL  = '1')  else 
-			  --'1' when  (RF_CTL_BEQ  and SIG_BEQ_EQ) = '1' else '0';
 	SIG_FLUSH_FETCH    <='1' when RESET_IN = '1' else '0';
-	
-SIG_FLUSH_DEC    <='1' when RESET_IN = '1' else '0';
-	
-	SIG_FLUSH_EX   <= '1' when RESET_IN = '1' else 
-			  '1' when (RF_CTL_JLR  = '1')  else 
-			   '1' when  (RF_CTL_BEQ  and SIG_BEQ_EQ) = '1' else '0';
---		SIG_FLUSH_EX   <= '1' when RESET_IN = '1' else '0';
+	SIG_FLUSH_DEC    <='1' when RESET_IN = '1' else '0';
+	SIG_FLUSH_EX    <='1' when RESET_IN = '1' else
+			'1' when (RF_CTL_BEQ and SIG_BEQ_EQ) = '1' else '0';
 	SIG_FLUSH_MEM   <='1' when RESET_IN = '1' else '0';
 	SIG_FLUSH_WB    <='1' when RESET_IN = '1' else '0';
 	
@@ -78,9 +69,8 @@ SIG_FLUSH_DEC    <='1' when RESET_IN = '1' else '0';
 	SIG_STALL_MEM  <= '0' when RESET_IN = '1' else '1'; 
 	SIG_STALL_WB   <= '0' when RESET_IN = '1' else '1'; 
 	
-	sig_no_flush <= '1' when RESET_IN = '0' else
-			'1' when (sig_SIG_FWD1 = '1' or sig_SIG_FWD2 = '1') else
-			'0' when sig_LOAD_DEP = '1';
+	sig_NOT_RESET_IN <= not(RESET_IN);
+
 	sig_LOAD_DEP <=  '1' when ((RF_RS1 = EX_RD) or (RF_RS2 = EX_RD)) else '0';
 
 	SIG_STALL_RF    <= not(sig_LOAD_DEP) when EX_CTL_MEMR = '1' else '1';
