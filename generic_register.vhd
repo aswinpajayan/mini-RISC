@@ -15,12 +15,13 @@ process (clk,clear) begin
 	if(rising_edge(clk)) then
 		if clear = '0' then
 			single_reg <= data_in ;
+			if(clear = '1') then 
+		single_reg <= (others => '0'); --asynchronous clear
+	end if;
 
 		end if;
 	end if;
-	if(clear = '1') then 
-		single_reg <= (others => '0'); --asynchronous clear
-	end if;
+	
 end process;
 end behav;
 
