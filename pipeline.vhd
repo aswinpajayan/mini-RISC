@@ -292,3 +292,4 @@ begin
 	PC_value <= sig_pipe_reg_wb_out(GLOBAL_WIDTH *2 -1 downto GLOBAL_WIDTH);
 
 end architecture rtl; 
+
