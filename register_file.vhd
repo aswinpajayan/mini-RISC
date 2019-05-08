@@ -26,14 +26,16 @@ signal rblock : rblock_t(SIZE-1 downto 0) := (others =>(others =>'0'));
 begin 
 	 data_out1 <= rblock(to_integer(unsigned(read_address1)));
 	 data_out2 <= rblock(to_integer(unsigned(read_address2)));
-	 R7_out <= rblock(7);
 	 write_process: process(clk,RESET_IN) begin
 		 if rising_edge(clk) then
 			 if(write_en = '1') and RESET_IN = '0' then
 				rblock(to_integer(unsigned('0' & write_address)))<= data_in;
-			end if;
-		    rblock(SIZE-1) <= PC_in;
+				if(to_integer(unsigned ('0' & write_address))) = 7 then	
+					R7_out <= data_in;
+				end if;
 		 end if;
+		end if;
+		 rblock(SIZE-1) <= PC_in;
 		 if(RESET_IN = '1') then 
 		    rblock <= (others =>(others=>'0')); 
 		 end if;

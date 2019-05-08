@@ -25,7 +25,7 @@ architecture rtl of hazard_detection is
 	end component generic_register;
 
 signal SIG_FLUSH_d : STD_LOGIC_VECTOR(5 downto 0);
-signal sig_SIG_FWD1,sig_SIG_FWD2 ,sig_NOT_RESET_IN,sig_LOAD_DEP :STD_LOGIC;
+signal sig_SIG_FWD1,sig_SIG_FWD2 ,sig_NOT_RESET_IN,sig_LOAD_DEP,sig_SIG_R7_JUMP :STD_LOGIC;
 
 
 
@@ -57,11 +57,15 @@ begin
 	SIG_FLUSH_RF   <= '1' when RESET_IN = '1' else
 			  '1' when  (DEC_CTL_JAL  or DEC_CTL_JLR )=  '1' else
 			  '1' when (RF_CTL_JLR  = '1')  else 
-			  '1' when  (RF_CTL_BEQ  and SIG_BEQ_EQ) = '1' else '0';
-	SIG_FLUSH_FETCH    <='1' when RESET_IN = '1' else '0';
-	SIG_FLUSH_DEC    <='1' when RESET_IN = '1' else '0';
+			  '1' when  (RF_CTL_BEQ  and SIG_BEQ_EQ) = '1' else
+			  '1' when sig_SIG_R7_JUMP = '1' else '0';
+	SIG_FLUSH_FETCH    <='1' when RESET_IN = '1' else
+				'1' when sig_SIG_R7_JUMP = '1' else '0';
+	SIG_FLUSH_DEC    <='1' when RESET_IN = '1' else
+			'1' when sig_SIG_R7_JUMP = '1' else '0';
 	SIG_FLUSH_EX    <='1' when RESET_IN = '1' else
-			'1' when (RF_CTL_BEQ and SIG_BEQ_EQ) = '1' else '0';
+			'1' when (RF_CTL_BEQ and SIG_BEQ_EQ) = '1' else 
+			'1' when sig_SIG_R7_JUMP = '1' else '0';
 	SIG_FLUSH_MEM   <='1' when RESET_IN = '1' else '0';
 	SIG_FLUSH_WB    <='1' when RESET_IN = '1' else '0';
 	
@@ -101,7 +105,9 @@ begin
 
 	SIG_FWD1 <= sig_SIG_FWD1;
 	SIG_FWD2 <= sig_SIG_FWD2;
-	SIG_R7_JUMP <= '1' when unsigned(WB_RD) = (GLOBAL_SIZE - 1) else '0';
+	sig_SIG_R7_JUMP <= '1' when (to_integer(unsigned('0' & WB_RD)) = 7) else '0';
+	SIG_R7_JUMP <= sig_SIG_R7_JUMP;
+
 
 
 end architecture rtl;
