@@ -22,6 +22,11 @@ architecture rtl of pipeline is
 	end component generic_register;
 
 
+	component gen_pipe_reg is generic(N : POSITIVE :=16);
+			port(data_in : in STD_LOGIC_VECTOR( N-1 DOWNTO 0);
+			    clk,clear: in STD_LOGIC;
+			     data_out: out STD_LOGIC_VECTOR( N-1 DOWNTO 0));
+	end component gen_pipe_reg;
 
 	component fetch_stage is port(RF_JUMP_ADDRESS,DEC_JUMP_ADDRESS,EPC : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 				clk,reset : in 	STD_LOGIC;
@@ -48,7 +53,8 @@ architecture rtl of pipeline is
 				FWD_DATA1,FWD_DATA2 : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 				PIPE_REG_EX : out STD_LOGIC_VECTOR (PIPE_REG_EX_SIZE - 1 downto (GLOBAL_WIDTH*2));
 				RF_JUMP_ADD : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
-				SIG_BEQ_EQ : out STD_LOGIC);
+				SIG_BEQ_EQ : out STD_LOGIC;
+				RESET_IN : IN STD_LOGIC);
 
 	end component register_stage;
 
@@ -180,7 +186,7 @@ begin
 				data_out => sig_pipe_reg_dec_out); 
 
 
-	PIPE_REG_RF : generic_register generic map(PIPE_REG_RF_SIZE)
+	PIPE_REG_RF : gen_pipe_reg generic map(PIPE_REG_RF_SIZE)
 				port map(data_in =>sig_pipe_reg_rf_in,
 				clk => GATED_CLK_RF,
 				clear => SIG_FLUSH_RF,
@@ -188,21 +194,21 @@ begin
 
 
 
-	PIPE_REG_EX : generic_register generic map(PIPE_REG_EX_SIZE)
+	PIPE_REG_EX : gen_pipe_reg generic map(PIPE_REG_EX_SIZE)
 				port map(data_in =>sig_pipe_reg_ex_in,
 				clk => GATED_CLK_EX,
 				clear => SIG_FLUSH_EX,
 				data_out => sig_pipe_reg_ex_out); 
 
 
-	PIPE_REG_MEM : generic_register generic map(PIPE_REG_MEM_SIZE)
+	PIPE_REG_MEM : gen_pipe_reg generic map(PIPE_REG_MEM_SIZE)
 				port map(data_in =>sig_pipe_reg_mem_in,
 				clk => GATED_CLK_MEM,
 				clear => SIG_FLUSH_MEM,
 				data_out => sig_pipe_reg_mem_out); 
 
 
-	PIPE_REG_WB : generic_register generic map(PIPE_REG_WB_SIZE)
+	PIPE_REG_WB : gen_pipe_reg generic map(PIPE_REG_WB_SIZE)
 				port map(data_in =>sig_pipe_reg_wb_in,
 				clk => GATED_CLK_WB,
 				clear => SIG_FLUSH_WB,
@@ -237,7 +243,8 @@ begin
 			FWD_DATA2 => FWD_DATA2,
 			PIPE_REG_EX => sig_pipe_reg_ex_in(PIPE_REG_EX_SIZE - 1 downto GLOBAL_WIDTH *2 ),
 			RF_JUMP_ADD => RF_JUMP_ADD,
-			SIG_BEQ_EQ => rF_SIG_BEQ_EQ);
+			SIG_BEQ_EQ => rF_SIG_BEQ_EQ,
+			RESET_IN => RESET_IN);
 
 	EXECUTE_BLOCK : execute_stage port map(PIPE_REG_EX => sig_pipe_reg_ex_out(PIPE_REG_EX_SIZE - 1 downto GLOBAL_WIDTH *2),
 			PREV_FLAGS => PREV_FLAGS,

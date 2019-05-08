@@ -19,7 +19,8 @@ entity register_stage is port(PIPE_REG_RF : in 	STD_LOGIC_VECTOR(PIPE_REG_RF_SIZ
 			FWD_DATA1,FWD_DATA2 : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 			PIPE_REG_EX : out STD_LOGIC_VECTOR (PIPE_REG_EX_SIZE - 1 downto (GLOBAL_WIDTH*2));
 			RF_JUMP_ADD : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
-			SIG_BEQ_EQ : out STD_LOGIC);
+			SIG_BEQ_EQ : out STD_LOGIC;
+			RESET_IN : in STD_LOGIC);
 
 end entity register_stage;
 
@@ -85,7 +86,8 @@ architecture rtl of register_stage is
 			port(read_address1,read_address2,write_address : in STD_LOGIC_VECTOR(integer(log2(real(SIZE)))-1 downto 0);
 			clk,write_en : in STD_LOGIC;
 			data_out1,data_out2 : out STD_LOGIC_VECTOR (WIDTH-1 downto 0);
-			data_in,PC_in : in STD_LOGIC_VECTOR (WIDTH-1 downto 0));
+			data_in,PC_in : in STD_LOGIC_VECTOR (WIDTH-1 downto 0);
+			RESET_IN : IN STD_LOGIC);
 
 	--PC +1 should be always kept in last register in the register file  ,
 	--R7 for a register file of size 8
@@ -101,7 +103,8 @@ begin
 		data_out1 => register_out1,
 		data_out2 => register_out2,
 		data_in => WB_RESULT,
-		PC_in => WB_PC_INX);
+		PC_in => WB_PC_INX,
+		RESET_IN => RESET_IN);
 
 	PIPE_REG_EX((GLOBAL_WIDTH *2) + 11 downto GLOBAL_WIDTH *2) <= CTL_SIGNALS; 
 	PIPE_REG_EX((GLOBAL_WIDTH *2) +12 + 2 downto (GLOBAL_WIDTH *2)+ 12) <= RD;
