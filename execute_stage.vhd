@@ -133,7 +133,7 @@ begin
 		PREV_FLAGS(1);
 
 	Z <= PREV_FLAGS(0) when CTL_MODIFY_FLAGS(0) = '0' else
-	     carry_out when ((not(CTL_VALIDATE_FLAGS)) or (CTL_VALIDATE_FLAGS and RF_CONDITION_CODE(0))) ='1' else
+	     zero_out when ((not(CTL_VALIDATE_FLAGS)) or (CTL_VALIDATE_FLAGS and RF_CONDITION_CODE(0))) ='1' else
 		PREV_FLAGS(1);
 
 
