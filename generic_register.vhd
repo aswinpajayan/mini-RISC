@@ -17,9 +17,9 @@ process (clk,clear) begin
 			single_reg <= data_in ;
 
 		end if;
-		if(clear = '1') then 
-		single_reg <= (others => '0'); --asynchronous clear
 	end if;
+	if(clear = '1') then 
+		single_reg <= (others => '0'); --asynchronous clear
 	end if;
 	
 end process;

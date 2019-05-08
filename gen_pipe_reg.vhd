@@ -22,8 +22,8 @@ process (clk,clear) begin
 
 		end if;
 		if(clear = '1') then 
-		single_reg(GLOBAL_WIDTH *2 + 6) <= '0'; --disable CTL_WRITE_REG
-		single_reg(GLOBAL_WIDTH *2 + 7) <= '0'; --disable CTL_MEMW
+		single_reg(N-1 downto GLOBAL_WIDTH ) <= (others => '0'); --disable CTL_WRITE_REG
+		single_reg(N-1 downto GLOBAL_WIDTH ) <= (others => '0'); --disable CTL_MEMW
 	end if;
 	end if;
 	

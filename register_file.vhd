@@ -8,7 +8,7 @@ entity register_file is generic(SIZE : POSITIVE :=8;
 				WIDTH: POSITIVE :=16);
 			port(read_address1,read_address2,write_address : in STD_LOGIC_VECTOR(integer(log2(real(SIZE)))-1 downto 0);
 				clk,write_en : in STD_LOGIC;
-				data_out1,data_out2 : out STD_LOGIC_VECTOR (WIDTH-1 downto 0);
+				data_out1,data_out2,R7_out : out STD_LOGIC_VECTOR (WIDTH-1 downto 0);
 				data_in,PC_in : in STD_LOGIC_VECTOR (WIDTH-1 downto 0);
 				RESET_IN : in STD_LOGIC);
 
@@ -26,6 +26,7 @@ signal rblock : rblock_t(SIZE-1 downto 0) := (others =>(others =>'0'));
 begin 
 	 data_out1 <= rblock(to_integer(unsigned(read_address1)));
 	 data_out2 <= rblock(to_integer(unsigned(read_address2)));
+	 R7_out <= rblock(7);
 	 write_process: process(clk,RESET_IN) begin
 		 if rising_edge(clk) then
 			 if(write_en = '1') and RESET_IN = '0' then

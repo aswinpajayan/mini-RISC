@@ -4,7 +4,7 @@ use IEEE.Numeric_std.all;
 use work.CONSTANTS.all;
 entity hazard_detection is port(RF_RS1,RF_RS2: in STD_LOGIC_VECTOR(2 downto 0);
 	EX_RD,MEM_RD,WB_RD : in STD_LOGIC_VECTOR(2 downto 0);
-	EX_RESULT,MEM_RESULT,WB_RESULT : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
+	EX_RESULT,MEM_RESULT,WB_RESULT,R7_out : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 	EX_CTL_WRITE_REG,MEM_CTL_WRITE_REG,WB_CTL_WRITE_REG,RF_CTL_BEQ : in STD_LOGIC;
 	DEC_CTL_JAL,DEC_CTL_JLR,RF_CTL_JLR,SIG_BEQ_EQ : in STD_LOGIC;
 	EX_CTL_MEMR : STD_LOGIC; --lookout for load dependncy
@@ -49,7 +49,7 @@ begin
 	DELAY_FLUSH : generic_register generic map(6)
 			port map(data_in => SIG_FLUSH_d,
 			clk => clk,
-			clear => sig_NOT_RESET_IN ,
+			clear => '0' ,
 			data_out => SIG_FLUSH);
 
 --	SIG_FLUSH_FETCH <='1' when (DEC_CTL_JAL or DEC_CTL_JLR) = '1' else
