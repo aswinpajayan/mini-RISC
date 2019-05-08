@@ -54,7 +54,8 @@ architecture rtl of pipeline is
 				PIPE_REG_EX : out STD_LOGIC_VECTOR (PIPE_REG_EX_SIZE - 1 downto (GLOBAL_WIDTH*2));
 				RF_JUMP_ADD : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 				SIG_BEQ_EQ : out STD_LOGIC;
-				RESET_IN : IN STD_LOGIC);
+				RESET_IN : IN STD_LOGIC;
+				R7_out : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0));
 
 	end component register_stage;
 
@@ -78,7 +79,7 @@ architecture rtl of pipeline is
 
 	component hazard_detection is port(RF_RS1,RF_RS2: in STD_LOGIC_VECTOR(2 downto 0);
 		EX_RD,MEM_RD,WB_RD : in STD_LOGIC_VECTOR(2 downto 0);
-		EX_RESULT,MEM_RESULT,WB_RESULT : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
+		EX_RESULT,MEM_RESULT,WB_RESULT,R7_out : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 		RESET_IN,clk : in STD_LOGIC;
 		EX_CTL_WRITE_REG,MEM_CTL_WRITE_REG,WB_CTL_WRITE_REG : in STD_LOGIC;
 		DEC_CTL_JAL,DEC_CTL_JLR,RF_CTL_JLR,SIG_BEQ_EQ,RF_CTL_BEQ : in STD_LOGIC;
@@ -119,7 +120,7 @@ signal RF_SIG_BEQ_EQ    : STD_LOGIC :='0'; 	--for connecting out port of RF stag
 --signal RS_CTL_BEQ,RS_CTL_JLR : STD_LOGIC; --connecint
 signal SIG_STALL,SIG_FLUSH : STD_LOGIC_VECTOR (5 downto 0);
 signal SIG_FWD1,SIG_FWD2 : STD_LOGIC ; -- to connect to forward logic out 
-signal FWD_DATA1,FWD_DATA2 :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
+signal FWD_DATA1,FWD_DATA2,R7_out :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 ----------------------alias declarations-------------------
 
 ----------------------from various stages ----------------
@@ -179,7 +180,7 @@ alias   EX_CTL_MEMR : STD_LOGIC is sig_pipe_reg_ex_out (GLOBAL_WIDTH *2 + 8);
 
 begin
 
-	PIPE_REG_DEC : generic_register generic map(GLOBAL_WIDTH *2)
+	PIPE_REG_DEC : gen_pipe_reg generic map(GLOBAL_WIDTH *2)
 				port map(data_in =>sig_pipe_reg_dec_in,
 				clk => GATED_CLK_DEC,
 				clear => SIG_FLUSH_DEC,
@@ -244,7 +245,8 @@ begin
 			PIPE_REG_EX => sig_pipe_reg_ex_in(PIPE_REG_EX_SIZE - 1 downto GLOBAL_WIDTH *2 ),
 			RF_JUMP_ADD => RF_JUMP_ADD,
 			SIG_BEQ_EQ => rF_SIG_BEQ_EQ,
-			RESET_IN => RESET_IN);
+			RESET_IN => RESET_IN,
+			R7_out => R7_out);
 
 	EXECUTE_BLOCK : execute_stage port map(PIPE_REG_EX => sig_pipe_reg_ex_out(PIPE_REG_EX_SIZE - 1 downto GLOBAL_WIDTH *2),
 			PREV_FLAGS => PREV_FLAGS,
@@ -281,7 +283,8 @@ begin
 				SIG_FWD1   => SIG_FWD1,
 				SIG_FWD2   => SIG_FWD2,
 				FWD_DATA1  => FWD_DATA1,
-				FWD_DATA2  => FWD_DATA2);
+				FWD_DATA2  => FWD_DATA2,
+				R7_out     => R7_out);
 
 	GATED_CLK_FETCH	 <= clk and SIG_STALL_FETCH	; --TODO change to and with stall logic 
 	GATED_CLK_DEC	 <= clk and SIG_STALL_DEC	; --TODO change to and with stall logic 
