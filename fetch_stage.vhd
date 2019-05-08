@@ -8,11 +8,11 @@ use work.all;
 --LEGEND 
 --	PC_INC = PC + 1 next instruction
 --	JUMP_ADD -- jump address is calculated in Execute stage, stored in REG_PIPE_EX_MEM
---	EPC	 -- Exception PC value , Value captured just before a pipeline stall 
+--	EPC	 -- Exception PC value , Value captured just before a pipeline stall --now used for jump on R7 
 entity fetch_stage is port(RF_JUMP_ADDRESS,DEC_JUMP_ADDRESS,EPC : in 	STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 			clk,reset : in 	STD_LOGIC;
 			PC_INX,INSTN : out STD_LOGIC_VECTOR (GLOBAL_WIDTH -1 downto 0);
-			SIG_BEQ_EQ : in STD_LOGIC;
+			SIG_BEQ_EQ ,SIG_R7_JUMP: in STD_LOGIC;
 			RS_CTL_JLR,RS_CTL_BEQ,DEC_CTL_JAL : in STD_LOGIC);
 end entity fetch_stage;
 
@@ -47,7 +47,8 @@ begin
 	
 
      mux_out <= RF_JUMP_ADDRESS when ((RS_CTL_BEQ = '1'  and SIG_BEQ_EQ = '1') or RS_CTL_JLR = '1') else
-		DEC_JUMP_ADDRESS when (DEC_CTL_JAL = '1' ) else 
+		DEC_JUMP_ADDRESS when (DEC_CTL_JAL = '1' ) else
+		EPC when (SIG_R7_JUMP = '1') else
 		pc_inc;
      PC_INX <= pc_inc;
 

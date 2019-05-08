@@ -31,7 +31,7 @@ architecture rtl of pipeline is
 	component fetch_stage is port(RF_JUMP_ADDRESS,DEC_JUMP_ADDRESS,EPC : in STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
 				clk,reset : in 	STD_LOGIC;
 				PC_inX,INSTN : out STD_LOGIC_VECTOR (GLOBAL_WIDTH -1 downto 0);
-				SIG_BEQ_EQ : in STD_LOGIC;
+				SIG_BEQ_EQ,SIG_R7_JUMP : in STD_LOGIC;
 				RS_CTL_JLR,RS_CTL_BEQ,DEC_CTL_JAL : in STD_LOGIC);
 	end component fetch_stage;
 
@@ -85,7 +85,7 @@ architecture rtl of pipeline is
 		DEC_CTL_JAL,DEC_CTL_JLR,RF_CTL_JLR,SIG_BEQ_EQ,RF_CTL_BEQ : in STD_LOGIC;
 		EX_CTL_MEMR : in STD_LOGIC;
 		SIG_FLUSH,SIG_STALL : out STD_LOGIC_VECTOR(5 downto 0);
-		SIG_FWD1,SIG_FWD2 : out STD_LOGIC;
+		SIG_FWD1,SIG_FWD2,SIG_R7_JUMP : out STD_LOGIC;
 		FWD_DATA1,FWD_DATA2 : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0));
 	end component hazard_detection;
 
@@ -121,6 +121,8 @@ signal RF_SIG_BEQ_EQ    : STD_LOGIC :='0'; 	--for connecting out port of RF stag
 signal SIG_STALL,SIG_FLUSH : STD_LOGIC_VECTOR (5 downto 0);
 signal SIG_FWD1,SIG_FWD2 : STD_LOGIC ; -- to connect to forward logic out 
 signal FWD_DATA1,FWD_DATA2,R7_out :STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0);
+signal sig_SIG_R7_JUMP : STD_LOGIC := '0';
+
 ----------------------alias declarations-------------------
 
 ----------------------from various stages ----------------
@@ -133,6 +135,7 @@ alias MEM_CTL_WRITE_REG : STD_LOGIC is sig_pipe_reg_mem_out((GLOBAL_WIDTH *2) + 
 alias WB_PC_INX : STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0) is sig_pipe_reg_wb_out(GLOBAL_WIDTH *2 -1 downto GLOBAL_WIDTH);
 alias PREV_FLAGS : STD_LOGIC_VECTOR (1 downto 0) is sig_pipe_reg_mem_out(PIPE_REG_MEM_SIZE -1 downto PIPE_REG_MEM_SIZE -2);
 alias RF_CONDITION_CODE : STD_LOGIC_VECTOR (1 downto 0) is sig_pipe_reg_rf_out(GLOBAL_WIDTH -1 downto GLOBAL_WIDTH - 2);
+
 --last two bits of instruction (conditional execution )
 
 -------------aliases for stall logic output----------------
@@ -218,7 +221,7 @@ begin
 
 	FETCH_BLOCK : fetch_stage port map(RF_JUMP_ADDRESS => RF_JUMP_ADD,
 			DEC_JUMP_ADDRESS => DEC_JUMP_ADDRESS,
-			EPC => EPC,
+			EPC => WB_RESULT,
 			clk => GATED_CLK_FETCH,
 		 	reset => RESET_IN,
 			PC_INX => sig_pipe_reg_dec_in (GLOBAL_WIDTH*2 -1 downto GLOBAL_WIDTH),
@@ -226,7 +229,8 @@ begin
 			SIG_BEQ_EQ => RF_SIG_BEQ_EQ,
 			RS_CTL_BEQ => RF_CTL_BEQ,
 			RS_CTL_JLR => RF_CTL_JLR,
-			DEC_CTL_JAL =>DEC_CTL_JAL
+			DEC_CTL_JAL =>DEC_CTL_JAL,
+			SIG_R7_JUMP => sig_SIG_R7_JUMP
 		);
 
 	DECODE_BLOCK : decode_stage port map(PIPE_REG_DEC => sig_pipe_reg_dec_out(31 downto 0),
@@ -276,6 +280,7 @@ begin
 				RF_CTL_JLR => RF_CTL_JLR,
 				RF_CTL_BEQ => RF_CTL_BEQ,
 				SIG_BEQ_EQ => RF_SIG_BEQ_EQ,
+				SIG_R7_JUMP => sig_SIG_R7_JUMP,
 				EX_CTL_MEMR => EX_CTL_MEMR,
 				clk => clk,
 				SIG_FLUSH => SIG_FLUSH,

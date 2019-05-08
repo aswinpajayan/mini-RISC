@@ -10,7 +10,7 @@ entity hazard_detection is port(RF_RS1,RF_RS2: in STD_LOGIC_VECTOR(2 downto 0);
 	EX_CTL_MEMR : STD_LOGIC; --lookout for load dependncy
 	RESET_IN ,clk: in STD_LOGIC;
 	SIG_FLUSH,SIG_STALL : out STD_LOGIC_VECTOR(5 downto 0);
-	SIG_FWD1,SIG_FWD2 : out STD_LOGIC;
+	SIG_FWD1,SIG_FWD2,SIG_R7_JUMP : out STD_LOGIC;
 	FWD_DATA1,FWD_DATA2 : out STD_LOGIC_VECTOR(GLOBAL_WIDTH -1 downto 0));
 end entity hazard_detection;
 
@@ -101,6 +101,7 @@ begin
 
 	SIG_FWD1 <= sig_SIG_FWD1;
 	SIG_FWD2 <= sig_SIG_FWD2;
+	SIG_R7_JUMP <= '1' when unsigned(WB_RD) = (GLOBAL_SIZE - 1) else '0';
 
 
 end architecture rtl;
