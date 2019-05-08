@@ -99,5 +99,8 @@ begin
 		    WB_RESULT when RF_RS2 = WB_RD else
 		    (others => '0');
 
+	SIG_FWD1 <= sig_SIG_FWD1;
+	SIG_FWD2 <= sig_SIG_FWD2;
+
 
 end architecture rtl;
